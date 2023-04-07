@@ -40,6 +40,9 @@ INSTALLED_APPS = [
 
     # Django apps
     'localization.apps.LocalizationConfig',
+
+    # 3rd-party apps
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
