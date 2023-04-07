@@ -9,7 +9,7 @@ from trivia_client.trivia_client import TriviaClient
 DICT_CACHE = DictCache()
 
 
-def get_trivias_by_categories(categories: Set[str] = None) -> List[dict]:
+def get_trivias_by_categories(categories: Set[str]) -> List[dict]:
     client = TriviaClient(cache=DICT_CACHE)
     trivias: List[dict] = client.get_trivias_by_categories(categories)
 
