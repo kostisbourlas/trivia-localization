@@ -7,7 +7,9 @@ import requests
 from trivia_client.cache import AbstractCache
 from trivia_client.exceptions import EmptyCategoryListError
 from trivia_client.utils import (
-    get_category_ids_by_names, call_url_for_each_category_async
+    get_category_ids_by_names,
+    call_url_for_each_category_async,
+    get_results_from_responses
 )
 
 
@@ -30,13 +32,15 @@ class TriviaClient:
         category_ids: Set[int] = get_category_ids_by_names(
             category_list, categories
         )
-        trivias: List[dict] = asyncio.run(
+
+        responses: list = asyncio.run(
             call_url_for_each_category_async(
                 base_url=f"{TRIVIA_API_TRIVIAS_URL}?amount={TRIVIA_RESULT_SIZE}",
                 category_ids=category_ids
             )
         )
 
+        trivias = get_results_from_responses(responses)
         return trivias
 
     def _get_categories(self):

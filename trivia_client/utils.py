@@ -23,7 +23,6 @@ async def call_url_async(session: aiohttp.ClientSession, url: str) -> dict:
 
 async def call_url_for_each_category_async(base_url: str, category_ids: Set[int]):
     tasks = []
-
     async with aiohttp.ClientSession() as session:
         for category_id in category_ids:
             tasks.append(
@@ -33,9 +32,11 @@ async def call_url_for_each_category_async(base_url: str, category_ids: Set[int]
             )
 
         responses = await asyncio.gather(*tasks)
+        return responses
 
-        trivias: List[dict] = []
-        for resp in responses:
-            trivias.extend(resp.get("results"))
 
+def get_results_from_responses(responses: list):
+    trivias: List[dict] = []
+    for resp in responses:
+        trivias.extend(resp.get("results"))
     return trivias
