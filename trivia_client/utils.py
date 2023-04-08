@@ -17,3 +17,13 @@ def get_category_ids_by_names(
 def call_url(url: str) -> dict:
     response = requests.get(url).json()
     return response
+
+
+def call_url_for_each_category(base_url: str, category_ids: Set[int]):
+    trivias: List[dict] = []
+    for category_id in category_ids:
+        # TODO: Make use of async request
+        response = call_url(f"{base_url}&category={category_id}")
+        trivias.extend(response.get("results"))
+
+    return trivias

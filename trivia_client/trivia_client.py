@@ -6,7 +6,10 @@ import requests
 
 from trivia_client.cache import AbstractCache
 from trivia_client.exceptions import EmptyCategoryListError
-from trivia_client.utils import get_category_ids_by_names, call_url
+from trivia_client.utils import (
+    get_category_ids_by_names, call_url_for_each_category
+)
+
 
 TRIVIA_API_TRIVIAS_URL: str = "https://opentdb.com/api.php"
 TRIVIA_API_CATEGORIES_URL: str = "https://opentdb.com/api_category.php"
@@ -27,19 +30,10 @@ class TriviaClient:
         category_ids: Set[int] = get_category_ids_by_names(
             category_list, categories
         )
-        trivias: List[dict] = self.call_url_for_each_category(
+        trivias: List[dict] = call_url_for_each_category(
             base_url=f"{TRIVIA_API_TRIVIAS_URL}?amount={TRIVIA_RESULT_SIZE}",
             category_ids=category_ids
         )
-
-        return trivias
-
-    def call_url_for_each_category(self, base_url: str, category_ids: Set[int]):
-        trivias: List[dict] = []
-        for category_id in category_ids:
-            # TODO: Make use of async request
-            response = call_url(f"{base_url}&category={category_id}")
-            trivias.extend(response.get("results"))
 
         return trivias
 

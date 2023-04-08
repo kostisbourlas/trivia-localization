@@ -29,7 +29,7 @@ class TriviaClientTestCase(TestCase):
         }
         self.client = TriviaClient(cache=None)
 
-    @patch("trivia_client.trivia_client.call_url")
+    @patch("trivia_client.utils.call_url")
     def test_get_trivias_by_categories(self, call_url_mock):
         call_url_mock.return_value = self.mock_response
 
