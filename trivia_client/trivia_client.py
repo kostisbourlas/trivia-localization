@@ -24,21 +24,23 @@ class TriviaClient:
 
         category_list: List = self._get_categories().get(TRIVIA_CATEGORIES_KEY)
 
-        trivias: List[dict] = []
         category_ids: Set[int] = get_category_ids_by_names(
             category_list, categories
         )
-        self.call_url_for_each_category(category_ids, trivias)
+        trivias: List[dict] = self.call_url_for_each_category(category_ids)
 
         return trivias
 
-    def call_url_for_each_category(self, category_ids, trivias):
+    def call_url_for_each_category(self, category_ids):
+        trivias: List[dict] = []
         for category_id in category_ids:
             # TODO: Make use of async request
             response = call_url(
                 f"{TRIVIA_API_TRIVIAS}?amount={TRIVIA_RESULT_SIZE}&category={category_id}"
             )
             trivias.extend(response.get("results"))
+
+        return trivias
 
     def _get_categories(self):
         if self.cache:
