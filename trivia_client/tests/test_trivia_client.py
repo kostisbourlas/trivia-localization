@@ -29,12 +29,9 @@ class TriviaClientTestCase(TestCase):
         }
         self.client = TriviaClient(cache=None)
 
-    @patch("trivia_client.trivia_client.requests")
-    def test_get_trivias_by_categories(self, mock_requests):
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = self.mock_response
-        mock_requests.get.return_value = mock_response
+    @patch("trivia_client.trivia_client.call_url")
+    def test_get_trivias_by_categories(self, call_url_mock):
+        call_url_mock.return_value = self.mock_response
 
         categories = {"General Knowledge"}
         expected_trivias = self.mock_response.get("results")

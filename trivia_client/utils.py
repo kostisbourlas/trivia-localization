@@ -1,5 +1,7 @@
 from typing import List, Set
 
+import requests
+
 
 def get_category_ids_by_names(
     categories: List[dict], names: Set[str]
@@ -10,3 +12,8 @@ def get_category_ids_by_names(
             matching_ids.add(category["id"])
 
     return matching_ids
+
+
+def call_url(url: str) -> dict:
+    response = requests.get(url).json()
+    return response
