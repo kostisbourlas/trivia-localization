@@ -1,6 +1,10 @@
 from django.core.management import BaseCommand
 
 from localization.interface import get_trivias
+from localization.service import (
+    construct_trivia_format
+)
+from localization.utils import append_data_to_file
 
 
 class Command(BaseCommand):
@@ -11,6 +15,7 @@ class Command(BaseCommand):
         categories = set(options.get("categories"))
 
         for trivia in get_trivias(categories):
-            print(trivia)
+            trivia_data: dict = construct_trivia_format(trivia)
+            append_data_to_file(trivia_data, "trivia.json")
 
         self.stdout.write(self.style.SUCCESS("Command successfully ran"))

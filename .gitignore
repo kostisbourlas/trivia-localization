@@ -3,3 +3,5 @@ __pycache__/
 venv/
 db.sqlite3
 .env
+uploading_files/*
+!uploading_files/.DO_NOT_REMOVE
