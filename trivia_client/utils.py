@@ -1,6 +1,7 @@
+import asyncio
 from typing import List, Set
 
-import requests
+import aiohttp
 
 
 def get_category_ids_by_names(
@@ -14,16 +15,27 @@ def get_category_ids_by_names(
     return matching_ids
 
 
-def call_url(url: str) -> dict:
-    response = requests.get(url).json()
-    return response
+async def call_url_async(session: aiohttp.ClientSession, url: str) -> dict:
+    async with session.get(url) as resp:
+        response = await resp.json()
+        return response
 
 
-def call_url_for_each_category(base_url: str, category_ids: Set[int]):
-    trivias: List[dict] = []
-    for category_id in category_ids:
-        # TODO: Make use of async request
-        response = call_url(f"{base_url}&category={category_id}")
-        trivias.extend(response.get("results"))
+async def call_url_for_each_category_async(base_url: str, category_ids: Set[int]):
+    tasks = []
+
+    async with aiohttp.ClientSession() as session:
+        for category_id in category_ids:
+            tasks.append(
+                asyncio.ensure_future(
+                    call_url_async(session, f"{base_url}&category={category_id}")
+                )
+            )
+
+        responses = await asyncio.gather(*tasks)
+
+        trivias: List[dict] = []
+        for resp in responses:
+            trivias.extend(resp.get("results"))
 
     return trivias
