@@ -7,3 +7,9 @@ def create_resource(name: str):
     client = TransifexClient()
     response = client.create_resource(name)
     return response
+
+
+def upload_file_to_resource(file, filename: str, resource: str) -> dict:
+    client = TransifexClient()
+    response = client.upload_file_to_resource(file, filename, resource)
+    return response

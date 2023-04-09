@@ -1,5 +1,7 @@
 import json
+import os
 import uuid
+from typing import Tuple
 
 from django.conf import settings
 
@@ -9,7 +11,7 @@ def create_random_prefix() -> str:
     return f"q{uuid.uuid4().hex}_"
 
 
-def append_data_to_file(data: dict, filename: str) -> str:
+def append_data_to_file(data: dict, filename: str) -> Tuple[str, str]:
     filepath: str = f"{settings.UPLOADING_FILES_PATH}/{filename}"
 
     try:
@@ -25,4 +27,9 @@ def append_data_to_file(data: dict, filename: str) -> str:
         file.truncate()
         json.dump(file_data, file)
 
-    return filepath
+    return filepath, filename
+
+
+def remove_files(filepath: str) -> True:
+    os.remove(filepath)
+    return True

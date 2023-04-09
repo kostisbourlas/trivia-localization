@@ -12,5 +12,9 @@ def get_trivias(categories: Set[str]) -> Generator:
         yield trivia
 
 
-def create_resource(name: str):
+def create_resource(name: str) -> dict:
     return transifex_interface.create_resource(name)
+
+
+def upload_file_to_resource(file, filename: str, resource: str) -> dict:
+    return transifex_interface.upload_file_to_resource(file, filename, resource)

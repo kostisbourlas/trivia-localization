@@ -27,3 +27,4 @@ def get_new_resource_data(name: str, slug: str) -> dict:
             "type": "resources"
         }
     }
+
