@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         resource_storage: Set[Resource] = get_created_resources()
 
-        resource_file_storage: List[ResourceFileRelation] = []
+        resource_file_storage: Set[ResourceFileRelation] = set()
         for trivia in TriviaAPI.get_trivias(categories):
             category = trivia.get("category")
 
@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 filename=filename
             )
 
-            resource_file_storage.append(resource_file_relation)
+            resource_file_storage.add(resource_file_relation)
 
         upload_files_to_resources(resource_file_storage)
 

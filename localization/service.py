@@ -18,7 +18,7 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def upload_files_to_resources(file_mapper: List[ResourceFileRelation]):
+def upload_files_to_resources(file_mapper: Set[ResourceFileRelation]):
     for item in file_mapper:
         with open(item.filepath, "rb") as file:
             TransifexAPI.upload_file_to_resource(
