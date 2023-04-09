@@ -37,7 +37,7 @@ class TriviaClientTestCase(TestCase):
         expected_trivias = self.mock_response.get("results")
 
         with patch.object(
-            TriviaClient, '_get_categories', return_value=self.mock_categories
+            TriviaClient, "_get_categories", return_value=self.mock_categories
         ):
             trivias = self.client.get_trivias_by_categories(categories)
 

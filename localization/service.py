@@ -23,7 +23,7 @@ def construct_trivia_format(trivia: dict) -> dict:
 
 def upload_files_to_resources(file_mapper: List[ResourceFileRelation]):
     for item in file_mapper:
-        with open(item.filepath, 'rb') as file:
+        with open(item.filepath, "rb") as file:
             upload_file_to_resource(file, item.filename, item.resource_id)
             _ = remove_files(item.filepath)
 

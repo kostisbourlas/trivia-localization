@@ -43,4 +43,4 @@ class AppendDataToFileTest(TestCase):
 
     def test_append_data_to_nonexistent_path(self):
         with self.assertRaises(FileNotFoundError):
-            append_data_to_file({'a': 1}, self.non_existing_file_path)
+            append_data_to_file({"a": 1}, self.non_existing_file_path)

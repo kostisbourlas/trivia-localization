@@ -32,7 +32,7 @@ class TransifexClient:
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
-        payload = {'resource': resource}
+        payload = {"resource": resource}
         files = {
             "content": (
                 filename,

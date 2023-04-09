@@ -4,8 +4,8 @@ import requests
 
 
 def slugify_string(string: str) -> str:
-    string = string.lower().replace(' ', '-')
-    string = re.sub(r'[^\w-]', '', string)
+    string = string.lower().replace(" ", "-")
+    string = re.sub(r"[^\w-]", "", string)
     return string
 
 

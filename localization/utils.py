@@ -15,7 +15,7 @@ def append_data_to_file(data: dict, filename: str) -> Tuple[str, str]:
     filepath: str = f"{settings.UPLOADING_FILES_PATH}/{filename}"
 
     try:
-        with open(filepath, 'r') as file:
+        with open(filepath, "r") as file:
             file_data = json.load(file)
     except FileNotFoundError:
         file_data = {}
