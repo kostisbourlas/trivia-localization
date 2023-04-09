@@ -1,7 +1,7 @@
 from typing import List
 
 from localization.interface import TransifexAPI
-from localization.objects import ResourceFileRelation
+from localization.objects import ResourceFileRelation, Resource
 from localization.utils import create_random_prefix, remove_files
 
 
@@ -27,16 +27,23 @@ def upload_files_to_resources(file_mapper: List[ResourceFileRelation]):
             _ = remove_files(item.filepath)
 
 
-def get_created_resources():
-    resources: dict = TransifexAPI.get_all_resources().get("data")
+def get_created_resources() -> List[Resource]:
+    results: dict = TransifexAPI.get_all_resources().get("data")
 
-    created_resources: dict[str, tuple] = {}
-    if resources:
-        for resource in resources:
-            resource_id: str = resource.get("id")
-            name: str = resource.get("attributes").get("name")
-            slug: str = resource.get("attributes").get("slug")
-
-            created_resources[name] = (resource_id, slug)
+    created_resources: List[Resource] = []
+    if results:
+        for item in results:
+            resource = Resource(
+                resource_id=item.get("id"),
+                name=item.get("attributes").get("name"),
+                slug=item.get("attributes").get("slug")
+            )
+            created_resources.append(resource)
 
     return created_resources
+
+
+def get_id_from_created_resources(category, created_resources):
+    for resource in created_resources:
+        if resource.name == category:
+            return resource.resource_id

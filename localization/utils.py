@@ -1,9 +1,11 @@
 import json
 import os
 import uuid
-from typing import Tuple
+from typing import Tuple, List
 
 from django.conf import settings
+
+from localization.objects import Resource
 
 
 def create_random_prefix() -> str:
@@ -33,3 +35,12 @@ def append_data_to_file(data: dict, filename: str) -> Tuple[str, str]:
 def remove_files(filepath: str) -> True:
     os.remove(filepath)
     return True
+
+
+def category_exists_in_resources(
+    category: str, resources: List[Resource]
+) -> bool:
+    for resource in resources:
+        if resource.name == category:
+            return True
+    return False
