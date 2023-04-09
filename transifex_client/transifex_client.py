@@ -33,13 +33,7 @@ class TransifexClient:
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
         payload = {"resource": resource}
-        files = {
-            "content": (
-                filename,
-                file,
-                "application/json",
-            ),
-        }
+        files = {"content": (filename, file, "application/json")}
         response = call_url_post_with_files(
             settings.TRANSIFEX_UPLOAD_FILE_URL, files, headers, payload
         )
