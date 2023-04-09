@@ -3,7 +3,7 @@ from typing import List
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from localization.interface import get_trivias, create_resource
+from localization.interface import TriviaAPI, TransifexAPI
 from localization.objects import ResourceFileRelation
 from localization.service import (
     construct_trivia_format,
@@ -23,10 +23,10 @@ class Command(BaseCommand):
         created_resources: dict[str, tuple] = get_created_resources()
 
         resource_file_storage: List[ResourceFileRelation] = []
-        for trivia in get_trivias(categories):
+        for trivia in TriviaAPI.get_trivias(categories):
             category = trivia.get("category")
             if category not in created_resources:
-                response = create_resource(category)
+                response = TransifexAPI.create_resource(category)
                 resource_id = response.get("data").get("id")
                 slug = response.get("data").get("attributes").get("slug")
                 created_resources[category] = (resource_id, slug)
