@@ -2,7 +2,8 @@ from typing import List, Optional, Set
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource
-from localization.utils import create_random_prefix, remove_files
+from localization.utils import create_random_prefix, remove_files, \
+    category_exists_in_resources
 
 
 def construct_trivia_format(trivia: dict) -> dict:
@@ -49,3 +50,20 @@ def get_resource_from_storage(
     for resource in storage:
         if resource.name == category:
             return resource
+
+
+def get_or_create_resource(category, resource_storage) -> Resource:
+    # Check if a resource for the category exists in storage,
+    # and create it if it doesn't
+    if category_exists_in_resources(category, resource_storage):
+        resource: Resource = get_resource_from_storage(
+            category, resource_storage
+        )
+    else:
+        response = TransifexAPI.create_resource(category)
+        resource = Resource(
+            resource_id=response.get("data").get("id"),
+            name=response.get("data").get("attributes").get("name"),
+            slug=response.get("data").get("attributes").get("slug")
+        )
+    return resource
