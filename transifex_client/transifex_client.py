@@ -12,8 +12,8 @@ class TransifexClient:
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
             "Content-Type": "application/vnd.api+json"
         }
-        url: str = settings.TRANSIFEX_RESOURCES_URL
-
-        response: dict = call_url_post(url, data, headers)
+        response: dict = call_url_post(
+            settings.TRANSIFEX_RESOURCES_URL, data, headers
+        )
 
         return response

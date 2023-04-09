@@ -1,5 +1,7 @@
+from django.conf import settings
+
+from localization.interface import create_resource
 from localization.utils import create_random_prefix, append_data_to_file
-from transifex_client.interface import create_resource
 
 
 def construct_trivia_format(trivia: dict) -> dict:
@@ -18,6 +20,7 @@ def construct_trivia_format(trivia: dict) -> dict:
 def localize_trivia(trivia: dict):
     trivia_data: dict = construct_trivia_format(trivia)
     append_data_to_file(
-        trivia_data, f"{trivia.get('category')}_trivia.json"
+        trivia_data,
+        f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
     )
-    response = create_resource(trivia.get("category"))
+    _ = create_resource(trivia.get("category"))

@@ -132,3 +132,5 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 UPLOADING_FILES_PATH = 'uploading_files'
+
+TRIVIA_FILES_SUFFIX = '_trivia'
