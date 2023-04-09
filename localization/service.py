@@ -2,8 +2,12 @@ from typing import Optional, Set
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource
-from localization.utils import create_random_prefix, remove_files, \
-    category_exists_in_resources
+from localization.utils import (
+    create_random_prefix,
+    remove_files,
+    category_exists_in_resources,
+    append_data_to_file
+)
 
 
 def construct_trivia_format(trivia: dict) -> dict:
@@ -19,11 +23,17 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
+def get_resource_existing_data(resource_id: str) -> dict:
+    return TransifexAPI.get_resource_data(resource_id)
+
+
 def upload_files_to_resources(file_mapper: Set[ResourceFileRelation]):
     for item in file_mapper:
-        with open(item.filepath, "rb") as file:
+        existing_data: dict = get_resource_existing_data(item.resource_id)
+        filepath, filename = append_data_to_file(existing_data, item.filename)
+        with open(filepath, "rb") as file:
             TransifexAPI.upload_file_to_resource(
-                file, item.filename, item.resource_id
+                file, filename, item.resource_id
             )
             _ = remove_files(item.filepath)
 

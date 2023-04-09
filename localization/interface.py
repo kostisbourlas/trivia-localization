@@ -27,3 +27,7 @@ class TransifexAPI:
         return transifex_interface.upload_file_to_resource(
             file, filename, resource
         )
+
+    @staticmethod
+    def get_resource_data(resource_id: str) -> dict:
+        return transifex_interface.get_resource_data(resource_id)
