@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource
@@ -43,7 +43,9 @@ def get_created_resources() -> List[Resource]:
     return created_resources
 
 
-def get_id_from_created_resources(category, created_resources):
-    for resource in created_resources:
+def get_resource_from_storage(
+    category: str, storage: List[Resource]
+) -> Optional[Resource]:
+    for resource in storage:
         if resource.name == category:
-            return resource.resource_id
+            return resource
