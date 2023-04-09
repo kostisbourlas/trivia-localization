@@ -1,6 +1,10 @@
-from typing import Dict, Tuple
+from typing import List
 
-from localization.interface import upload_file_to_resource, get_all_resources
+from localization.interface import (
+    upload_file_to_resource,
+    get_all_resources,
+)
+from localization.objects import ResourceFileRelation
 from localization.utils import create_random_prefix, remove_files
 
 
@@ -17,11 +21,11 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def upload_files_to_resources(mapper: Dict[str, Tuple]):
-    for resource, file_details in mapper.items():
-        with open(file_details[0], 'rb') as file:
-            upload_file_to_resource(file, file_details[1], resource)
-            _ = remove_files(file_details[0])
+def upload_files_to_resources(file_mapper: List[ResourceFileRelation]):
+    for item in file_mapper:
+        with open(item.filepath, 'rb') as file:
+            upload_file_to_resource(file, item.filename, item.resource_id)
+            _ = remove_files(item.filepath)
 
 
 def get_created_resources():
