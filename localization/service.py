@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
 
-from localization.interface import upload_file_to_resource
+from localization.interface import upload_file_to_resource, get_all_resources
 from localization.utils import create_random_prefix, remove_files
 
 
@@ -22,3 +22,18 @@ def upload_files_to_resources(mapper: Dict[str, Tuple]):
         with open(file_details[0], 'rb') as file:
             upload_file_to_resource(file, file_details[1], resource)
             _ = remove_files(file_details[0])
+
+
+def get_created_resources():
+    resources: dict = get_all_resources().get("data")
+
+    created_resources: dict[str, tuple] = {}
+    if resources:
+        for resource in resources:
+            resource_id: str = resource.get("id")
+            name: str = resource.get("attributes").get("name")
+            slug: str = resource.get("attributes").get("slug")
+
+            created_resources[name] = (resource_id, slug)
+
+    return created_resources

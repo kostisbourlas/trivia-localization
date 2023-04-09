@@ -1,26 +1,10 @@
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from localization.interface import get_trivias, create_resource, \
-    get_all_resources
+from localization.interface import get_trivias, create_resource
 from localization.service import construct_trivia_format, \
-    upload_files_to_resources
+    upload_files_to_resources, get_created_resources
 from localization.utils import append_data_to_file
-
-
-def get_created_resources():
-    resources: dict = get_all_resources().get("data")
-
-    created_resources: dict[str, tuple] = {}
-    if resources:
-        for resource in resources:
-            resource_id: str = resource.get("id")
-            name: str = resource.get("attributes").get("name")
-            slug: str = resource.get("attributes").get("slug")
-
-            created_resources[name] = (resource_id, slug)
-
-    return created_resources
 
 
 class Command(BaseCommand):
