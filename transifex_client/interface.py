@@ -3,9 +3,15 @@
 from transifex_client.transifex_client import TransifexClient
 
 
-def create_resource(name: str):
+def create_resource(name: str) -> dict:
     client = TransifexClient()
     response = client.create_resource(name)
+    return response
+
+
+def get_all_resources() -> dict:
+    client = TransifexClient()
+    response = client.get_all_resources()
     return response
 
 

@@ -2,9 +2,10 @@ from django.conf import settings
 from django.core.management import BaseCommand
 
 from localization.interface import get_trivias, create_resource, \
-    upload_file_to_resource
-from localization.service import construct_trivia_format
-from localization.utils import append_data_to_file, remove_files
+    get_all_resources
+from localization.service import construct_trivia_format, \
+    upload_files_to_resources
+from localization.utils import append_data_to_file
 
 
 class Command(BaseCommand):
@@ -13,6 +14,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         categories = set(options.get("categories"))
+
+        response = get_all_resources()
+        print(response)
 
         filepath_resource_mapper: dict = {}
         for trivia in get_trivias(categories):
@@ -27,10 +31,6 @@ class Command(BaseCommand):
 
             filepath_resource_mapper[resource_id] = (filepath, filename)
 
-        for resource, file_details in filepath_resource_mapper.items():
-            with open(file_details[0], 'rb') as file:
-                print(file)
-                upload_file_to_resource(file, file_details[1], resource)
-                _ = remove_files(file_details)
+        upload_files_to_resources(filepath_resource_mapper)
 
         self.stdout.write(self.style.SUCCESS("Command successfully ran"))

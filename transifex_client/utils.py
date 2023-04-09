@@ -2,8 +2,6 @@ import re
 
 import requests
 
-from transifex_client import settings
-
 
 def slugify_string(string: str) -> str:
     string = string.lower().replace(' ', '-')
@@ -11,8 +9,13 @@ def slugify_string(string: str) -> str:
     return string
 
 
-def call_url_post(url: str, data: dict, headers: dict, files: dict = None) -> dict:
-    response = requests.post(url, json=data, headers=headers, files=files)
+def call_url_get(url: str, headers: dict):
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+
+def call_url_post(url: str, data: dict, headers: dict) -> dict:
+    response = requests.post(url, json=data, headers=headers)
     return response.json()
 
 
