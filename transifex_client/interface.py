@@ -3,7 +3,7 @@
 from transifex_client.transifex_client import TransifexClient
 
 
-def upload_resource():
+def create_resource(name: str):
     client = TransifexClient()
-    response = client.upload_resource()
+    response = client.create_resource(name)
     return response
