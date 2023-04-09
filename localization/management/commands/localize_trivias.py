@@ -8,6 +8,21 @@ from localization.service import construct_trivia_format, \
 from localization.utils import append_data_to_file
 
 
+def get_created_resources():
+    resources: dict = get_all_resources().get("data")
+
+    created_resources: dict[str, tuple] = {}
+    if resources:
+        for resource in resources:
+            resource_id: str = resource.get("id")
+            name: str = resource.get("attributes").get("name")
+            slug: str = resource.get("attributes").get("slug")
+
+            created_resources[name] = (resource_id, slug)
+
+    return created_resources
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--categories", nargs="+", type=str)
@@ -15,13 +30,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         categories = set(options.get("categories"))
 
-        response = get_all_resources()
-        print(response)
+        created_resources: dict[str, tuple] = get_created_resources()
 
         filepath_resource_mapper: dict = {}
         for trivia in get_trivias(categories):
-            response = create_resource(trivia.get("category"))
-            resource_id = response.get("data").get("id")
+            category = trivia.get("category")
+            if category not in created_resources:
+                response = create_resource(category)
+                resource_id = response.get("data").get("id")
+                slug = response.get("data").get("attributes").get("slug")
+                created_resources[category] = (resource_id, slug)
+            else:
+                resource_id = created_resources[category][0]
 
             trivia_data: dict = construct_trivia_format(trivia)
             filepath, filename = append_data_to_file(
