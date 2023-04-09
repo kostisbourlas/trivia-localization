@@ -9,18 +9,20 @@ def create_random_prefix() -> str:
     return f"q{uuid.uuid4().hex}_"
 
 
-def append_data_to_file(data: dict, filename: str):
-    file_path: str = f"{settings.UPLOADING_FILES_PATH}/{filename}"
+def append_data_to_file(data: dict, filename: str) -> str:
+    filepath: str = f"{settings.UPLOADING_FILES_PATH}/{filename}"
 
     try:
-        with open(file_path, 'r') as file:
+        with open(filepath, 'r') as file:
             file_data = json.load(file)
     except FileNotFoundError:
         file_data = {}
 
     file_data.update(data)
 
-    with open(file_path, "a") as file:
+    with open(filepath, "a") as file:
         file.seek(0)
         file.truncate()
         json.dump(file_data, file)
+
+    return filepath

@@ -1,7 +1,4 @@
-from django.conf import settings
-
-from localization.interface import create_resource
-from localization.utils import create_random_prefix, append_data_to_file
+from localization.utils import create_random_prefix
 
 
 def construct_trivia_format(trivia: dict) -> dict:
@@ -15,12 +12,3 @@ def construct_trivia_format(trivia: dict) -> dict:
         trivia_format.update({f"{prefix}incorrect_answer_{index}": answer})
 
     return trivia_format
-
-
-def localize_trivia(trivia: dict):
-    trivia_data: dict = construct_trivia_format(trivia)
-    append_data_to_file(
-        trivia_data,
-        f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
-    )
-    _ = create_resource(trivia.get("category"))
