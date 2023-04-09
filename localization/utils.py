@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from typing import Tuple, List
+from typing import Tuple, List, Set
 
 from django.conf import settings
 
@@ -38,7 +38,7 @@ def remove_files(filepath: str) -> True:
 
 
 def category_exists_in_resources(
-    category: str, resources: List[Resource]
+    category: str, resources: Set[Resource]
 ) -> bool:
     for resource in resources:
         if resource.name == category:

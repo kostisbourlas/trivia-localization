@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from django.conf import settings
 from django.core.management import BaseCommand
@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         categories = set(options.get("categories"))
 
-        resource_storage: List[Resource] = get_created_resources()
+        resource_storage: Set[Resource] = get_created_resources()
 
         resource_file_storage: List[ResourceFileRelation] = []
         for trivia in TriviaAPI.get_trivias(categories):
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                     name=response.get("data").get("attributes").get("name"),
                     slug=response.get("data").get("attributes").get("slug")
                 )
-                resource_storage.append(resource)
+                resource_storage.add(resource)
             else:
                 resource: Resource = get_resource_from_storage(
                     category, resource_storage

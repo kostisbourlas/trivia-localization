@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource
@@ -27,10 +27,10 @@ def upload_files_to_resources(file_mapper: List[ResourceFileRelation]):
             _ = remove_files(item.filepath)
 
 
-def get_created_resources() -> List[Resource]:
+def get_created_resources() -> Set[Resource]:
     results: dict = TransifexAPI.get_all_resources().get("data")
 
-    created_resources: List[Resource] = []
+    created_resources: Set[Resource] = set()
     if results:
         for item in results:
             resource = Resource(
@@ -38,13 +38,13 @@ def get_created_resources() -> List[Resource]:
                 name=item.get("attributes").get("name"),
                 slug=item.get("attributes").get("slug")
             )
-            created_resources.append(resource)
+            created_resources.add(resource)
 
     return created_resources
 
 
 def get_resource_from_storage(
-    category: str, storage: List[Resource]
+    category: str, storage: Set[Resource]
 ) -> Optional[Resource]:
     for resource in storage:
         if resource.name == category:
