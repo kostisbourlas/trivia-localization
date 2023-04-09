@@ -6,7 +6,7 @@ from transifex_client.utils import (
     call_url_post_with_files,
     call_url_get
 )
-from transifex_client.api_data import get_new_resource_data
+from transifex_client.payload import construct_resources_payload
 
 
 class TransifexClient:
@@ -18,7 +18,7 @@ class TransifexClient:
         return response
 
     def create_resource(self, name: str) -> dict:
-        data: dict = get_new_resource_data(name, slugify_string(name))
+        data: dict = construct_resources_payload(name, slugify_string(name))
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
             "Content-Type": "application/vnd.api+json"

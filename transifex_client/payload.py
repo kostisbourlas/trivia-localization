@@ -1,7 +1,7 @@
 from transifex_client import settings
 
 
-def get_new_resource_data(name: str, slug: str) -> dict:
+def construct_resources_payload(name: str, slug: str) -> dict:
     return {
         "data": {
             "attributes": {

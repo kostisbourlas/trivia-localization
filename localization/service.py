@@ -1,4 +1,4 @@
-from typing import List, Optional, Set
+from typing import Optional, Set
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource

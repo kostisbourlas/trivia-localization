@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from typing import Tuple, List, Set
+from typing import Tuple, Set
 
 from django.conf import settings
 
