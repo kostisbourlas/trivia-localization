@@ -14,14 +14,16 @@ from transifex_client.payload import (
 
 
 class TransifexClient:
-    def get_all_resources(self):
+    @staticmethod
+    def get_all_resources():
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
         response: dict = call_url_get(settings.TRANSIFEX_RESOURCES_URL, headers)
         return response
 
-    def create_resource(self, name: str) -> dict:
+    @staticmethod
+    def create_resource(name: str) -> dict:
         data: dict = construct_resources_payload(name, slugify_string(name))
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
@@ -32,7 +34,8 @@ class TransifexClient:
         )
         return response
 
-    def upload_file_to_resource(self, file, filename, resource: str) -> dict:
+    @staticmethod
+    def upload_file_to_resource(file, filename, resource: str) -> dict:
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
@@ -57,7 +60,8 @@ class TransifexClient:
 
         return response
 
-    def _request_resource_download(self, resource_id) -> Optional[str]:
+    @staticmethod
+    def _request_resource_download(resource_id) -> Optional[str]:
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
             "Content-Type": "application/vnd.api+json"
@@ -76,7 +80,8 @@ class TransifexClient:
         # has been created, but it contains no data.
         return None
 
-    def get_request_file_upload_data(self, request_id: str):
+    @staticmethod
+    def get_request_file_upload_data(request_id: str):
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
