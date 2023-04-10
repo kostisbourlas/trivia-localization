@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Callable
 
 from django.conf import settings
 
@@ -9,7 +9,8 @@ from localization.utils import (
     remove_files,
     category_exists_in_resources,
     append_data_to_file,
-    get_resource_from_storage
+    get_resource_from_storage,
+    get_dict_path
 )
 
 
@@ -26,16 +27,41 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def upload_files_to_resources(file_mapper: Set[ResourceFileRelation]):
+def poll_over_the_url(
+    call_url: Callable, retries: int, dict_path: str, message: str
+) -> dict:
+
+    for _ in range(retries):
+        response = call_url()
+        if get_dict_path(response, dict_path) == message:
+            return response
+    return {}
+
+
+def upload_files_to_resources(
+    file_mapper: Set[ResourceFileRelation]
+) -> Set[ResourceFileRelation]:
+    failed_uploads: Set[ResourceFileRelation] = set()
     for item in file_mapper:
         # get existing data from the specified resource
         existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
         filepath, filename = append_data_to_file(existing_data, item.filename)
         with open(filepath, "rb") as file:
-            TransifexAPI.upload_file_to_resource(
+            response = TransifexAPI.upload_file_to_resource(
                 file, filename, item.resource_id
             )
-            _ = remove_files(item.filepath)
+            pol_response = poll_over_the_url(
+                call_url=TransifexAPI.get_request_file_upload_data(),
+                retries=5,
+                dict_path="data/attributes/status",
+                message="succeeded"
+            )
+            if pol_response.get("data").get("attributes").get("status") == "succeeded":
+                _ = remove_files(item.filepath)
+            else:
+                failed_uploads.add(item)
+
+    return failed_uploads
 
 
 def get_created_resources() -> Set[Resource]:

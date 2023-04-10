@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from typing import Tuple, Set, Optional, Any
+from typing import Tuple, Set, Optional, Any, Callable
 
 from django.conf import settings
 
@@ -61,3 +61,14 @@ def get_dict_path(dictionary: dict, dict_path: str) -> Any:
     for item in dict_path.split("/"):
         dictionary = dictionary[item]
     return dictionary
+
+
+def call_url_with_polling(
+    call_url: Callable, retries: int, dict_path: str, message: str
+) -> dict:
+
+    for _ in range(retries):
+        response = call_url()
+        if get_dict_path(response, dict_path) == message:
+            return response
+    return {}

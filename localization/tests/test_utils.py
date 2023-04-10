@@ -1,5 +1,6 @@
 import os
 import json
+from unittest.mock import Mock
 
 from django.test import TestCase
 from django.conf import settings
@@ -10,7 +11,7 @@ from localization.utils import (
     remove_files,
     get_resource_from_storage,
     category_exists_in_resources,
-    get_dict_path
+    get_dict_path, call_url_with_polling
 )
 
 
@@ -132,3 +133,59 @@ class GetDictionaryPathTestCase(TestCase):
     def test_invalid_dict_path(self):
         with self.assertRaises(KeyError):
             get_dict_path(self.dictionary, "key1/key4")
+
+
+class CallUrlWithPollingTestCase(TestCase):
+
+    def setUp(self):
+        self.call_url_mock = Mock()
+
+    def test_call_url_with_polling_success(self):
+        # Mock the response to return the expected message
+        self.call_url_mock.side_effect = [
+            {"status": "processing"},
+            {"status": "processing"},
+            {"status": "done", "data": {"result": "success"}},
+        ]
+
+        # Define the expected arguments and return value
+        retries = 3
+        dict_path = "status"
+        message = "done"
+        expected_result = {"status": "done", "data": {"result": "success"}}
+
+        # Call the method being tested
+        result = call_url_with_polling(
+            self.call_url_mock, retries, dict_path, message
+        )
+
+        # Assert that the mock was called three times
+        self.assertEqual(self.call_url_mock.call_count, 3)
+
+        # Assert that the expected result was returned
+        self.assertEqual(result, expected_result)
+
+    def test_call_url_with_polling_failure(self):
+        # Mock the response to never return the expected message
+        self.call_url_mock.side_effect = [
+            {"status": "processing"},
+            {"status": "processing"},
+            {"status": "processing"},
+        ]
+
+        # Define the expected arguments and return value
+        retries = 3
+        dict_path = "status"
+        message = "done"
+        expected_result = {}
+
+        # Call the method being tested
+        result = call_url_with_polling(
+            self.call_url_mock, retries, dict_path, message
+        )
+
+        # Assert that the mock was called three times
+        self.assertEqual(self.call_url_mock.call_count, 3)
+
+        # Assert that no result was returned
+        self.assertEqual(result, expected_result)
