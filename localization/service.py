@@ -54,21 +54,28 @@ def get_created_resources() -> Set[Resource]:
     return created_resources
 
 
-def get_or_create_resource(category, resource_storage) -> Resource:
-    # Check if a resource for the category exists in storage,
-    # and create it if it doesn't
-    if category_exists_in_resources(category, resource_storage):
-        resource: Resource = get_resource_from_storage(
-            category, resource_storage
+def get_or_create_resource(
+    resource: str, resource_storage: Set[Resource]
+) -> Resource:
+    """
+    Checks if a resource exists in the Set and if it doesn't, call Transifex
+    API to create it and store it to the Set.
+    :param resource: Str
+    :param resource_storage: Set[Resource]
+    :return: A Resource namedtuple object
+    """
+    if category_exists_in_resources(resource, resource_storage):
+        resource_obj: Resource = get_resource_from_storage(
+            resource, resource_storage
         )
     else:
-        response = TransifexAPI.create_resource(category)
-        resource = Resource(
+        response = TransifexAPI.create_resource(resource)
+        resource_obj = Resource(
             resource_id=response.get("data").get("id"),
             name=response.get("data").get("attributes").get("name"),
             slug=response.get("data").get("attributes").get("slug")
         )
-    return resource
+    return resource_obj
 
 
 def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]:
@@ -93,6 +100,8 @@ def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]
             f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
         )
 
+        # Create a resource-file relation that will be used to push the files
+        # to the specific resource
         resource_file_relation = ResourceFileRelation(
             resource_id=resource.resource_id,
             filepath=filepath,
