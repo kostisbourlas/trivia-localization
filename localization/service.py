@@ -1,4 +1,5 @@
-from typing import Set, Callable
+import functools
+from typing import Set
 
 from django.conf import settings
 
@@ -10,7 +11,7 @@ from localization.utils import (
     category_exists_in_resources,
     append_data_to_file,
     get_resource_from_storage,
-    get_dict_path
+    call_url_with_polling
 )
 
 
@@ -27,36 +28,46 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def poll_over_the_url(
-    call_url: Callable, retries: int, dict_path: str, message: str
-) -> dict:
-
-    for _ in range(retries):
-        response = call_url()
-        if get_dict_path(response, dict_path) == message:
-            return response
-    return {}
-
-
 def upload_files_to_resources(
     file_mapper: Set[ResourceFileRelation]
 ) -> Set[ResourceFileRelation]:
+    """
+    Iterates over the collection to get existing data from the resource, append
+    them to current file and push them into Transifex. After that, it polls
+    for a response and depends on the status either removes the files or appends
+    them into a data structure in order to be pushed again in the future
+    :param file_mapper: Set[ResourceFileRelation]: A structure containing all
+    the files and their associated resources that must be uploaded.
+    :return: Set[ResourceFileRelation]: A Set containing the files and their
+    associated resources that couldn't upload or empty set
+    """
     failed_uploads: Set[ResourceFileRelation] = set()
+
     for item in file_mapper:
         # get existing data from the specified resource
         existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
         filepath, filename = append_data_to_file(existing_data, item.filename)
         with open(filepath, "rb") as file:
+            # upload file to transifex api
             response = TransifexAPI.upload_file_to_resource(
                 file, filename, item.resource_id
             )
-            pol_response = poll_over_the_url(
-                call_url=TransifexAPI.get_request_file_upload_data(),
+            request_id: str = response.get("data").get("id")
+            success_status: str = "succeeded"
+            # poll for response
+            response: dict = call_url_with_polling(
+                call_url=functools.partial(
+                    TransifexAPI.get_request_file_upload_data,
+                    request_id=request_id
+                ),
                 retries=5,
                 dict_path="data/attributes/status",
-                message="succeeded"
+                message=success_status
             )
-            if pol_response.get("data").get("attributes").get("status") == "succeeded":
+            status: str = response.get("data", "").get("attributes", "").get("status", "")
+            # either clear the files or leave them and register
+            # the ResourceFileRelation for trying to upload them again
+            if status == success_status:
                 _ = remove_files(item.filepath)
             else:
                 failed_uploads.add(item)
@@ -85,7 +96,7 @@ def get_or_create_resource(
 ) -> Resource:
     """
     Checks if a resource exists in the Set and if it doesn't, call Transifex
-    API to create it and store it to the Set.
+    API to create it and store it to the Set
     :param resource: Str
     :param resource_storage: Set[Resource]
     :return: A Resource namedtuple object

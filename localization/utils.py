@@ -66,7 +66,6 @@ def get_dict_path(dictionary: dict, dict_path: str) -> Any:
 def call_url_with_polling(
     call_url: Callable, retries: int, dict_path: str, message: str
 ) -> dict:
-
     for _ in range(retries):
         response = call_url()
         if get_dict_path(response, dict_path) == message:
