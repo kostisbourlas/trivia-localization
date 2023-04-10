@@ -68,17 +68,17 @@ def get_dict_path(dictionary: dict, dict_path: str) -> Any:
 
 
 def call_url_with_polling(
-    call_url: Callable, retries: int, dict_path: str, message: str
+    call_method: Callable, retries: int, dict_path: str, message: str
 ) -> dict:
     for _ in range(retries):
-        response = call_url()
+        response = call_method()
         if get_dict_path(response, dict_path) == message:
             return response
     return {}
 
 
-def retry_api_call(
-    call_url: Callable, retries: int, error_codes: Set[int]
+def call_url_with_retry(
+    call_method: Callable, retries: int, error_codes: Set[int]
 ) -> Union[dict, requests.HTTPError]:
     if retries <= 0:
         raise NonPositiveNumberError
@@ -86,7 +86,7 @@ def retry_api_call(
     backoff: int = 1
     while retries > 0:
         try:
-            response: dict = call_url()
+            response: dict = call_method()
             return response
         except requests.HTTPError as e:
             retries -= 1

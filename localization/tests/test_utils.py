@@ -16,7 +16,7 @@ from localization.utils import (
     category_exists_in_resources,
     get_dict_path,
     call_url_with_polling,
-    retry_api_call
+    call_url_with_retry
 )
 
 
@@ -203,7 +203,7 @@ class TestRetryAPICall(TestCase):
         def api_call_mock():
             return response_mock
 
-        result = retry_api_call(api_call_mock, 1, set())
+        result = call_url_with_retry(api_call_mock, 1, set())
         self.assertEqual(result, response_mock)
 
     def test_retry_on_error_code(self):
@@ -214,7 +214,7 @@ class TestRetryAPICall(TestCase):
             raise requests.HTTPError(response=error_response_mock)
 
         with self.assertRaises(requests.HTTPError):
-            retry_api_call(api_call_mock, 1, {409})
+            call_url_with_retry(api_call_mock, 1, {409})
 
     def test_no_retry_on_unhandled_error_code(self):
         error_response_mock = MagicMock()
@@ -224,7 +224,7 @@ class TestRetryAPICall(TestCase):
             raise requests.HTTPError(response=error_response_mock)
 
         with self.assertRaises(requests.HTTPError):
-            retry_api_call(api_call_mock, 1, {500})
+            call_url_with_retry(api_call_mock, 1, {500})
 
     def test_with_zero_retries(self):
         response_mock = {"status": "success"}
@@ -233,4 +233,4 @@ class TestRetryAPICall(TestCase):
             return response_mock
 
         with self.assertRaises(NonPositiveNumberError):
-            retry_api_call(api_call_mock, 0, {500})
+            call_url_with_retry(api_call_mock, 0, {500})

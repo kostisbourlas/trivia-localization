@@ -13,7 +13,7 @@ from localization.utils import (
     append_data_to_file,
     get_resource_from_storage,
     call_url_with_polling,
-    retry_api_call,
+    call_url_with_retry,
     construct_trivia_format
 )
 
@@ -102,16 +102,16 @@ def _process_file_to_upload(
         upload_file_to_resource: Callable = functools.partial(
             TransifexAPI.upload_file_to_resource, file, filename, item.resource_id
         )
-        response: dict = retry_api_call(upload_file_to_resource, 5, {429, 500})
+        response: dict = call_url_with_retry(upload_file_to_resource, 5, {429, 500})
 
         request_id: str = response.get("data").get("id")
         success_status: str = "succeeded"
-        call_url: callable = functools.partial(
+        get_request_file_upload_data: callable = functools.partial(
             TransifexAPI.get_request_file_upload_data, request_id=request_id
         )
         # poll for response
         response: dict = call_url_with_polling(
-            call_url=call_url,
+            call_method=get_request_file_upload_data,
             retries=5,
             dict_path="data/attributes/status",
             message=success_status
@@ -158,8 +158,8 @@ def _get_or_create_resource(
             resource, resource_storage
         )
     else:
-        response = retry_api_call(
-            call_url=functools.partial(TransifexAPI.create_resource, resource),
+        response = call_url_with_retry(
+            call_method=functools.partial(TransifexAPI.create_resource, resource),
             retries=3,
             error_codes={500}
         )
