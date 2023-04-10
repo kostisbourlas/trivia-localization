@@ -1,4 +1,6 @@
 import functools
+import requests
+
 from typing import Set, Optional
 
 from django.conf import settings
@@ -35,10 +37,14 @@ def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]
     for trivia in TriviaAPI.get_trivias(categories):
         category = trivia.get("category")
 
-        resource: Resource = get_or_create_resource(
-            category, resource_storage
-        )
-        resource_storage.add(resource)
+        try:
+            resource: Resource = get_or_create_resource(
+                category, resource_storage
+            )
+            resource_storage.add(resource)
+        except requests.HTTPError:
+            # if resource cannot be created, proceed to the next question
+            continue
 
         trivia_data: dict = construct_trivia_format(trivia)
         filepath, filename = append_data_to_file(
