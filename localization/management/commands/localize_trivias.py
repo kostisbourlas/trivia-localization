@@ -2,6 +2,7 @@ from typing import Set
 
 from django.core.management import BaseCommand
 
+from localization.decorators import print_auth_errors
 from localization.objects import ResourceFileRelation
 from localization.service import (
     process_files_to_upload,
@@ -13,6 +14,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--categories", nargs="+", type=str)
 
+    @print_auth_errors
     def handle(self, *args, **options):
         categories = set(options.get("categories"))
 
