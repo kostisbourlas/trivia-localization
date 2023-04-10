@@ -6,7 +6,8 @@ from localization.utils import (
     create_random_prefix,
     remove_files,
     category_exists_in_resources,
-    append_data_to_file, get_resource_from_storage
+    append_data_to_file,
+    get_resource_from_storage
 )
 
 
@@ -23,13 +24,10 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def get_resource_existing_data(resource_id: str) -> dict:
-    return TransifexAPI.get_resource_data(resource_id)
-
-
 def upload_files_to_resources(file_mapper: Set[ResourceFileRelation]):
     for item in file_mapper:
-        existing_data: dict = get_resource_existing_data(item.resource_id)
+        # get existing data from the specified resource
+        existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
         filepath, filename = append_data_to_file(existing_data, item.filename)
         with open(filepath, "rb") as file:
             TransifexAPI.upload_file_to_resource(
