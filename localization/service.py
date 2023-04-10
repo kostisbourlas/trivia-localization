@@ -1,6 +1,8 @@
 from typing import Set
 
-from localization.interface import TransifexAPI
+from django.conf import settings
+
+from localization.interface import TransifexAPI, TriviaAPI
 from localization.objects import ResourceFileRelation, Resource
 from localization.utils import (
     create_random_prefix,
@@ -67,3 +69,34 @@ def get_or_create_resource(category, resource_storage) -> Resource:
             slug=response.get("data").get("attributes").get("slug")
         )
     return resource
+
+
+def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]:
+    # Get a set of created resources from project
+    resource_storage: Set[Resource] = get_created_resources()
+
+    # Create a set to hold resource-file relations
+    resource_file_storage: Set[ResourceFileRelation] = set()
+
+    # Iterate over the results from TriviaAPI for the specified categories
+    for trivia in TriviaAPI.get_trivias(categories):
+        category = trivia.get("category")
+
+        resource: Resource = get_or_create_resource(
+            category, resource_storage
+        )
+        resource_storage.add(resource)
+
+        trivia_data: dict = construct_trivia_format(trivia)
+        filepath, filename = append_data_to_file(
+            trivia_data,
+            f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
+        )
+
+        resource_file_relation = ResourceFileRelation(
+            resource_id=resource.resource_id,
+            filepath=filepath,
+            filename=filename
+        )
+        resource_file_storage.add(resource_file_relation)
+    return resource_file_storage
