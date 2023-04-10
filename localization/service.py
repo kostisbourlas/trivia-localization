@@ -11,7 +11,8 @@ from localization.utils import (
     category_exists_in_resources,
     append_data_to_file,
     get_resource_from_storage,
-    call_url_with_polling
+    call_url_with_polling,
+    retry_api_call
 )
 
 
@@ -160,7 +161,11 @@ def get_or_create_resource(
             resource, resource_storage
         )
     else:
-        response = TransifexAPI.create_resource(resource)
+        response = retry_api_call(
+            call_url=functools.partial(TransifexAPI.create_resource, resource),
+            retries=3,
+            error_codes={500}
+        )
         resource_obj = Resource(
             resource_id=response.get("data").get("id"),
             name=response.get("data").get("attributes").get("name"),
