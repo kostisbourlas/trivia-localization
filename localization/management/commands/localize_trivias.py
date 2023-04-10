@@ -4,7 +4,7 @@ from django.core.management import BaseCommand
 
 from localization.objects import ResourceFileRelation
 from localization.service import (
-    upload_files_to_resources,
+    process_files_to_upload,
     prepare_trivias_to_upload
 )
 
@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
         resource_file_storage = prepare_trivias_to_upload(categories)
 
-        failed_uploads: Set[ResourceFileRelation] = upload_files_to_resources(
+        failed_uploads: Set[ResourceFileRelation] = process_files_to_upload(
             resource_file_storage
         )
         if failed_uploads:

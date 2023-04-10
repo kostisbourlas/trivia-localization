@@ -1,5 +1,5 @@
 import functools
-from typing import Set
+from typing import Set, Optional
 
 from django.conf import settings
 
@@ -28,51 +28,64 @@ def construct_trivia_format(trivia: dict) -> dict:
     return trivia_format
 
 
-def upload_files_to_resources(
+def process_files_to_upload(
     file_mapper: Set[ResourceFileRelation]
 ) -> Set[ResourceFileRelation]:
-    """
-    Iterates over the collection to get existing data from the resource, append
-    them to current file and push them into Transifex. After that, it polls
-    for a response and depends on the status either removes the files or appends
-    them into a data structure in order to be pushed again in the future
-    :param file_mapper: Set[ResourceFileRelation]: A structure containing all
-    the files and their associated resources that must be uploaded.
-    :return: Set[ResourceFileRelation]: A Set containing the files and their
-    associated resources that couldn't upload or empty set
-    """
     failed_uploads: Set[ResourceFileRelation] = set()
 
     for item in file_mapper:
-        # get existing data from the specified resource
-        existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
-        filepath, filename = append_data_to_file(existing_data, item.filename)
-        with open(filepath, "rb") as file:
-            # upload file to transifex api
-            response = TransifexAPI.upload_file_to_resource(
-                file, filename, item.resource_id
-            )
-            request_id: str = response.get("data").get("id")
-            success_status: str = "succeeded"
-            # poll for response
-            response: dict = call_url_with_polling(
-                call_url=functools.partial(
-                    TransifexAPI.get_request_file_upload_data,
-                    request_id=request_id
-                ),
-                retries=5,
-                dict_path="data/attributes/status",
-                message=success_status
-            )
-            status: str = response.get("data", "").get("attributes", "").get("status", "")
-            # either clear the files or leave them and register
-            # the ResourceFileRelation for trying to upload them again
-            if status == success_status:
-                _ = remove_files(item.filepath)
-            else:
-                failed_uploads.add(item)
+        failed_upload: ResourceFileRelation = process_file_to_upload(item)
+        if failed_upload:
+            failed_uploads.add(failed_upload)
 
     return failed_uploads
+
+
+def process_file_to_upload(
+    item: ResourceFileRelation
+) -> Optional[ResourceFileRelation]:
+    """
+    Gets existing data from the resource, appends them to the prepared json
+    file and push them into Transifex. Then, it polls for a response and depends
+    on the status either removes the files or appends them into a data structure
+    in order to be pushed again in the future
+    :param item: A ResourceFileRelation
+    :return: A ResourceFileRelation that represents the failed upload or None in
+    case the upload succeeded
+    """
+    # get existing data from the specified resource
+    existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
+
+    # append existing data to the new
+    filepath, filename = append_data_to_file(existing_data, item.filename)
+
+    with open(filepath, "rb") as file:
+        # upload file to specific resource
+        response = TransifexAPI.upload_file_to_resource(
+            file, filename, item.resource_id
+        )
+        request_id: str = response.get("data").get("id")
+        success_status: str = "succeeded"
+        call_url: callable = functools.partial(
+            TransifexAPI.get_request_file_upload_data, request_id=request_id
+        )
+        # poll for response
+        response: dict = call_url_with_polling(
+            call_url=call_url,
+            retries=5,
+            dict_path="data/attributes/status",
+            message=success_status
+        )
+        status: str = response.get("data", "").get("attributes", "").get(
+            "status", "")
+
+        # either clear the files or leave them and register
+        # the ResourceFileRelation for trying to upload them again
+        if status == success_status:
+            _ = remove_files(item.filepath)
+            return None
+
+    return item
 
 
 def get_created_resources() -> Set[Resource]:
