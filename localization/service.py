@@ -8,13 +8,13 @@ from django.conf import settings
 from localization.interface import TransifexAPI, TriviaAPI
 from localization.objects import ResourceFileRelation, Resource
 from localization.utils import (
-    create_random_prefix,
     remove_files,
     category_exists_in_resources,
     append_data_to_file,
     get_resource_from_storage,
     call_url_with_polling,
-    retry_api_call
+    retry_api_call,
+    construct_trivia_format
 )
 
 
@@ -28,7 +28,7 @@ def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]
     the relevant files to the right resources
     """
     # Get a set of created resources from project
-    resource_storage: Set[Resource] = get_created_resources()
+    resource_storage: Set[Resource] = _get_created_resources()
 
     # Create a set to hold resource-file relations
     resource_file_storage: Set[ResourceFileRelation] = set()
@@ -38,7 +38,7 @@ def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]
         category = trivia.get("category")
 
         try:
-            resource: Resource = get_or_create_resource(
+            resource: Resource = _get_or_create_resource(
                 category, resource_storage
             )
             resource_storage.add(resource)
@@ -123,20 +123,7 @@ def _process_file_to_upload(
     return item
 
 
-def construct_trivia_format(trivia: dict) -> dict:
-    prefix: str = create_random_prefix()
-    trivia_format = {
-        f"{prefix}question": trivia.get("question"),
-        f"{prefix}correct_answer": trivia.get("correct_answer"),
-    }
-
-    for index, answer in enumerate(trivia.get("incorrect_answers")):
-        trivia_format.update({f"{prefix}incorrect_answer_{index}": answer})
-
-    return trivia_format
-
-
-def get_created_resources() -> Set[Resource]:
+def _get_created_resources() -> Set[Resource]:
     results: dict = TransifexAPI.get_all_resources().get("data")
 
     created_resources: Set[Resource] = set()
@@ -152,7 +139,7 @@ def get_created_resources() -> Set[Resource]:
     return created_resources
 
 
-def get_or_create_resource(
+def _get_or_create_resource(
     resource: str, resource_storage: Set[Resource]
 ) -> Resource:
     """

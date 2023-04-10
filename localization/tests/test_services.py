@@ -2,7 +2,7 @@ from unittest import mock
 from django.test import TestCase
 
 from localization.objects import Resource
-from localization.service import get_or_create_resource, get_created_resources
+from localization.service import _get_or_create_resource, _get_created_resources
 
 
 class GetOrCreateResourceTestCase(TestCase):
@@ -15,7 +15,7 @@ class GetOrCreateResourceTestCase(TestCase):
     @mock.patch('localization.service.TransifexAPI.create_resource')
     def test_get_or_create_resource_resource_exists(self, mock_create_resource):
         # Call the method being tested with an existing category name
-        result = get_or_create_resource(self.resource1.name, self.resources)
+        result = _get_or_create_resource(self.resource1.name, self.resources)
 
         # Assert that the method returned the expected Resource object
         self.assertEqual(result, self.resource1)
@@ -41,7 +41,7 @@ class GetOrCreateResourceTestCase(TestCase):
         }
 
         # Call the method being tested with a nonexistent category name
-        result = get_or_create_resource("Resource 2", self.resources)
+        result = _get_or_create_resource("Resource 2", self.resources)
 
         # Assert that the method returned the expected Resource object
         self.assertEqual(result.resource_id, resource_id)
@@ -78,7 +78,7 @@ class GetCreatedResourcesTestCase(TestCase):
         mock_get_all_resources.return_value = mock_data
 
         # Call the get_created_resources method and check the result
-        created_resources = get_created_resources()
+        created_resources = _get_created_resources()
         self.assertEqual(len(created_resources), 2)
 
     @mock.patch('localization.service.TransifexAPI.get_all_resources')
@@ -89,5 +89,5 @@ class GetCreatedResourcesTestCase(TestCase):
         mock_data = {}
         mock_get_all_resources.return_value = mock_data
 
-        created_resources = get_created_resources()
+        created_resources = _get_created_resources()
         self.assertFalse(bool(created_resources))
