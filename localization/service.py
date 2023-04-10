@@ -79,6 +79,14 @@ def get_or_create_resource(
 
 
 def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]:
+    """
+    Gets all resources from Transifex project. Iterates over the categories,
+    creating new resources if needed and constructing the correct format that
+    will be appending to the file in order to be pushed to the right resources
+    :param categories: Set[str]
+    :return: A Set[ResourceFileRelation] that will be iterated over to upload
+    the relevant files to the right resources
+    """
     # Get a set of created resources from project
     resource_storage: Set[Resource] = get_created_resources()
 
