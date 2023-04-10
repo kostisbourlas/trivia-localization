@@ -15,17 +15,45 @@ from localization.utils import (
 )
 
 
-def construct_trivia_format(trivia: dict) -> dict:
-    prefix: str = create_random_prefix()
-    trivia_format = {
-        f"{prefix}question": trivia.get("question"),
-        f"{prefix}correct_answer": trivia.get("correct_answer"),
-    }
+def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]:
+    """
+    Gets all resources from Transifex project. Iterates over the categories,
+    creating new resources if needed and constructing the correct format that
+    will be appending to the file in order to be pushed to the right resources
+    :param categories: Set[str]
+    :return: A Set[ResourceFileRelation] that will be iterated over to upload
+    the relevant files to the right resources
+    """
+    # Get a set of created resources from project
+    resource_storage: Set[Resource] = get_created_resources()
 
-    for index, answer in enumerate(trivia.get("incorrect_answers")):
-        trivia_format.update({f"{prefix}incorrect_answer_{index}": answer})
+    # Create a set to hold resource-file relations
+    resource_file_storage: Set[ResourceFileRelation] = set()
 
-    return trivia_format
+    # Iterate over the results from TriviaAPI for the specified categories
+    for trivia in TriviaAPI.get_trivias(categories):
+        category = trivia.get("category")
+
+        resource: Resource = get_or_create_resource(
+            category, resource_storage
+        )
+        resource_storage.add(resource)
+
+        trivia_data: dict = construct_trivia_format(trivia)
+        filepath, filename = append_data_to_file(
+            trivia_data,
+            f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
+        )
+
+        # Create a resource-file relation that will be used to push the files
+        # to the specific resource
+        resource_file_relation = ResourceFileRelation(
+            resource_id=resource.resource_id,
+            filepath=filepath,
+            filename=filename
+        )
+        resource_file_storage.add(resource_file_relation)
+    return resource_file_storage
 
 
 def process_files_to_upload(
@@ -34,14 +62,14 @@ def process_files_to_upload(
     failed_uploads: Set[ResourceFileRelation] = set()
 
     for item in file_mapper:
-        failed_upload: ResourceFileRelation = process_file_to_upload(item)
+        failed_upload: ResourceFileRelation = _process_file_to_upload(item)
         if failed_upload:
             failed_uploads.add(failed_upload)
 
     return failed_uploads
 
 
-def process_file_to_upload(
+def _process_file_to_upload(
     item: ResourceFileRelation
 ) -> Optional[ResourceFileRelation]:
     """
@@ -88,6 +116,19 @@ def process_file_to_upload(
     return item
 
 
+def construct_trivia_format(trivia: dict) -> dict:
+    prefix: str = create_random_prefix()
+    trivia_format = {
+        f"{prefix}question": trivia.get("question"),
+        f"{prefix}correct_answer": trivia.get("correct_answer"),
+    }
+
+    for index, answer in enumerate(trivia.get("incorrect_answers")):
+        trivia_format.update({f"{prefix}incorrect_answer_{index}": answer})
+
+    return trivia_format
+
+
 def get_created_resources() -> Set[Resource]:
     results: dict = TransifexAPI.get_all_resources().get("data")
 
@@ -126,44 +167,3 @@ def get_or_create_resource(
             slug=response.get("data").get("attributes").get("slug")
         )
     return resource_obj
-
-
-def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]:
-    """
-    Gets all resources from Transifex project. Iterates over the categories,
-    creating new resources if needed and constructing the correct format that
-    will be appending to the file in order to be pushed to the right resources
-    :param categories: Set[str]
-    :return: A Set[ResourceFileRelation] that will be iterated over to upload
-    the relevant files to the right resources
-    """
-    # Get a set of created resources from project
-    resource_storage: Set[Resource] = get_created_resources()
-
-    # Create a set to hold resource-file relations
-    resource_file_storage: Set[ResourceFileRelation] = set()
-
-    # Iterate over the results from TriviaAPI for the specified categories
-    for trivia in TriviaAPI.get_trivias(categories):
-        category = trivia.get("category")
-
-        resource: Resource = get_or_create_resource(
-            category, resource_storage
-        )
-        resource_storage.add(resource)
-
-        trivia_data: dict = construct_trivia_format(trivia)
-        filepath, filename = append_data_to_file(
-            trivia_data,
-            f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
-        )
-
-        # Create a resource-file relation that will be used to push the files
-        # to the specific resource
-        resource_file_relation = ResourceFileRelation(
-            resource_id=resource.resource_id,
-            filepath=filepath,
-            filename=filename
-        )
-        resource_file_storage.add(resource_file_relation)
-    return resource_file_storage
