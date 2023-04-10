@@ -9,7 +9,7 @@ from transifex_client.utils import (
 )
 from transifex_client.payload import (
     construct_resources_payload,
-    get_request_resource_data_payload
+    construct_request_resource_data_payload
 )
 
 
@@ -62,7 +62,7 @@ class TransifexClient:
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
             "Content-Type": "application/vnd.api+json"
         }
-        payload: dict = get_request_resource_data_payload(resource_id)
+        payload: dict = construct_request_resource_data_payload(resource_id)
         retries: int = 5
         while retries > 0:
             response: dict = call_url_post(
