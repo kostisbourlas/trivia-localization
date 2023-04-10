@@ -25,3 +25,9 @@ def get_resource_data(resource_id: str) -> dict:
     client = TransifexClient()
     response = client.get_resource_data(resource_id)
     return response
+
+
+def get_request_file_upload_data(request_id: str):
+    client = TransifexClient()
+    response = client.get_request_file_upload_data(request_id)
+    return response

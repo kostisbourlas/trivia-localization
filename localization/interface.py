@@ -15,6 +15,10 @@ class TriviaAPI:
 
 class TransifexAPI:
     @staticmethod
+    def get_request_file_upload_data(request_id: str) -> dict:
+        return transifex_interface.get_request_file_upload_data(request_id)
+
+    @staticmethod
     def create_resource(name: str) -> dict:
         return transifex_interface.create_resource(name)
 

@@ -75,3 +75,13 @@ class TransifexClient:
         # Assume that status is still pending which occurs when the resource
         # has been created, but it contains no data.
         return None
+
+    def get_request_file_upload_data(self, request_id: str):
+        headers: dict = {
+            "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
+        }
+        response: dict = call_url_get(
+            f"{settings.TRANSIFEX_UPLOAD_FILE_URL}/{request_id}", headers
+        )
+
+        return response
