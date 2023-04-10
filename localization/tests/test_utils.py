@@ -78,7 +78,7 @@ class GetResourceFromStorageTestCase(TestCase):
 
     def test_get_resource_from_storage_found(self):
         # Call the method being tested with a valid category name
-        result = get_resource_from_storage("Resource 2", self.storage)
+        result = get_resource_from_storage("R 2", self.storage)
 
         self.assertEqual(result, self.resource2)
 
