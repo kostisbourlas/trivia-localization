@@ -1,17 +1,22 @@
 import os
 import json
-from unittest.mock import Mock
+import requests
+
+from unittest.mock import Mock, MagicMock
 
 from django.test import TestCase
 from django.conf import settings
 
+from localization.exceptions import NonPositiveNumberError
 from localization.objects import Resource
 from localization.utils import (
     append_data_to_file,
     remove_files,
     get_resource_from_storage,
     category_exists_in_resources,
-    get_dict_path, call_url_with_polling
+    get_dict_path,
+    call_url_with_polling,
+    retry_api_call
 )
 
 
@@ -189,3 +194,43 @@ class CallUrlWithPollingTestCase(TestCase):
 
         # Assert that no result was returned
         self.assertEqual(result, expected_result)
+
+
+class TestRetryAPICall(TestCase):
+    def test_successful_call(self):
+        response_mock = {"status": "success"}
+
+        def api_call_mock():
+            return response_mock
+
+        result = retry_api_call(api_call_mock, 1, set())
+        self.assertEqual(result, response_mock)
+
+    def test_retry_on_error_code(self):
+        error_response_mock = MagicMock()
+        error_response_mock.status_code = 409
+
+        def api_call_mock():
+            raise requests.HTTPError(response=error_response_mock)
+
+        with self.assertRaises(requests.HTTPError):
+            retry_api_call(api_call_mock, 1, {409})
+
+    def test_no_retry_on_unhandled_error_code(self):
+        error_response_mock = MagicMock()
+        error_response_mock.status_code = 404
+
+        def api_call_mock():
+            raise requests.HTTPError(response=error_response_mock)
+
+        with self.assertRaises(requests.HTTPError):
+            retry_api_call(api_call_mock, 1, {500})
+
+    def test_with_zero_retries(self):
+        response_mock = {"status": "success"}
+
+        def api_call_mock():
+            return response_mock
+
+        with self.assertRaises(NonPositiveNumberError):
+            retry_api_call(api_call_mock, 0, {500})
