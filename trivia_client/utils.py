@@ -2,6 +2,7 @@ import asyncio
 from typing import List, Set
 
 import aiohttp
+import requests
 
 
 def get_category_ids_by_names(
@@ -40,3 +41,9 @@ def get_results_from_responses(responses: list):
     for resp in responses:
         trivias.extend(resp.get("results"))
     return trivias
+
+
+def call_url_get(url: str, headers: dict = None):
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()

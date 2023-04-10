@@ -2,14 +2,13 @@
 import asyncio
 from typing import List, Set
 
-import requests
-
 from trivia_client.cache import AbstractCache
 from trivia_client.exceptions import EmptyCategoryListError
 from trivia_client.utils import (
     get_category_ids_by_names,
     call_url_for_each_category_async,
-    get_results_from_responses
+    get_results_from_responses,
+    call_url_get
 )
 
 
@@ -46,11 +45,11 @@ class TriviaClient:
     def _get_categories(self):
         if self.cache:
             if not self.cache.get(TRIVIA_API_CATEGORIES_URL):
-                response = requests.get(TRIVIA_API_CATEGORIES_URL)
-                self.cache.set(key=TRIVIA_API_CATEGORIES_URL, value=response.json())
+                response = call_url_get(TRIVIA_API_CATEGORIES_URL)
+                self.cache.set(key=TRIVIA_API_CATEGORIES_URL, value=response)
 
             categories = self.cache.get(TRIVIA_API_CATEGORIES_URL)
         else:
-            categories = requests.get(TRIVIA_API_CATEGORIES_URL).json()
+            categories = call_url_get(TRIVIA_API_CATEGORIES_URL)
 
         return categories
