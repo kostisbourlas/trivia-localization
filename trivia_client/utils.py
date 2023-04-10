@@ -31,16 +31,15 @@ async def call_url_for_each_category_async(base_url: str, category_ids: Set[int]
                     call_url_async(session, f"{base_url}&category={category_id}")
                 )
             )
-
         responses = await asyncio.gather(*tasks)
         return responses
 
 
-def get_results_from_responses(responses: list):
-    trivias: List[dict] = []
+def get_results_from_responses(responses: list) -> List[dict]:
+    results: List[dict] = []
     for resp in responses:
-        trivias.extend(resp.get("results"))
-    return trivias
+        results.extend(resp.get("results"))
+    return results
 
 
 def call_url_get(url: str, headers: dict = None):
