@@ -5,8 +5,13 @@ from django.test import TestCase
 from django.conf import settings
 
 from localization.objects import Resource
-from localization.utils import append_data_to_file, remove_files, \
-    get_resource_from_storage, category_exists_in_resources
+from localization.utils import (
+    append_data_to_file,
+    remove_files,
+    get_resource_from_storage,
+    category_exists_in_resources,
+    get_dict_path
+)
 
 
 class AppendDataToFileTest(TestCase):
@@ -108,3 +113,22 @@ class CategoryExistsInResourcesTestCase(TestCase):
         result = category_exists_in_resources("Resource 4", self.resources)
 
         self.assertFalse(result)
+
+
+class GetDictionaryPathTestCase(TestCase):
+    def setUp(self):
+        self.dictionary = {
+            "key1": {
+                "key2": {
+                    "key3": "value"
+                }
+            }
+        }
+
+    def test_get_dict_path(self):
+        result = get_dict_path(self.dictionary, "key1/key2/key3")
+        self.assertEqual(result, "value")
+
+    def test_invalid_dict_path(self):
+        with self.assertRaises(KeyError):
+            get_dict_path(self.dictionary, "key1/key4")

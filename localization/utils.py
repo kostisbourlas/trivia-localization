@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from typing import Tuple, Set, Optional
+from typing import Tuple, Set, Optional, Any
 
 from django.conf import settings
 
@@ -55,3 +55,9 @@ def get_resource_from_storage(
     for resource in storage:
         if resource.name == category:
             return resource
+
+
+def get_dict_path(dictionary: dict, dict_path: str) -> Any:
+    for item in dict_path.split("/"):
+        dictionary = dictionary[item]
+    return dictionary
