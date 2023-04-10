@@ -6,7 +6,7 @@ from django.conf import settings
 
 from localization.objects import Resource
 from localization.utils import append_data_to_file, remove_files, \
-    get_resource_from_storage
+    get_resource_from_storage, category_exists_in_resources
 
 
 class AppendDataToFileTest(TestCase):
@@ -71,9 +71,9 @@ class RemoveFilesTestCase(TestCase):
 class GetResourceFromStorageTestCase(TestCase):
     def setUp(self):
         # Create some sample Resource objects for testing
-        self.resource1 = Resource(resource_id="1", name="Resource 1", slug="resource-1")
-        self.resource2 = Resource(resource_id="2", name="Resource 2", slug="resource-2")
-        self.resource3 = Resource(resource_id="3", name="Resource 3", slug="resource-3")
+        self.resource1 = Resource(resource_id=1, name="R 1", slug="resource-1")
+        self.resource2 = Resource(resource_id=2, name="R 2", slug="resource-2")
+        self.resource3 = Resource(resource_id=3, name="R 3", slug="resource-3")
         self.storage = {self.resource1, self.resource2, self.resource3}
 
     def test_get_resource_from_storage_found(self):
@@ -87,3 +87,24 @@ class GetResourceFromStorageTestCase(TestCase):
         result = get_resource_from_storage("Resource 4", self.storage)
 
         self.assertIsNone(result)
+
+
+class CategoryExistsInResourcesTestCase(TestCase):
+    def setUp(self):
+        # Create some sample Resource objects for testing
+        self.resource1 = Resource(resource_id=1, name="R 1", slug="resource-1")
+        self.resource2 = Resource(resource_id=2, name="R 2", slug="resource-2")
+        self.resource3 = Resource(resource_id=3, name="R 3", slug="resource-3")
+        self.resources = {self.resource1, self.resource2, self.resource3}
+
+    def test_category_exists_in_resources_found(self):
+        # Call the method being tested with a valid category name
+        result = category_exists_in_resources("R 2", self.resources)
+
+        self.assertTrue(result)
+
+    def test_category_exists_in_resources_not_found(self):
+        # Call the method being tested with a nonexistent category name
+        result = category_exists_in_resources("Resource 4", self.resources)
+
+        self.assertFalse(result)
