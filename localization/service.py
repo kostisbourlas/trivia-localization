@@ -1,7 +1,7 @@
 import functools
 import requests
 
-from typing import Set, Optional
+from typing import Set, Optional, Callable
 
 from django.conf import settings
 
@@ -88,17 +88,22 @@ def _process_file_to_upload(
     :return: A ResourceFileRelation that represents the failed upload or None in
     case the upload succeeded
     """
-    # get existing data from the specified resource
-    existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
+    try:
+        # get existing data from the specified resource
+        existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
+    except requests.HTTPError:
+        existing_data = {}
 
     # append existing data to the new
     filepath, filename = append_data_to_file(existing_data, item.filename)
 
     with open(filepath, "rb") as file:
         # upload file to specific resource
-        response = TransifexAPI.upload_file_to_resource(
-            file, filename, item.resource_id
+        upload_file_to_resource: Callable = functools.partial(
+            TransifexAPI.upload_file_to_resource, file, filename, item.resource_id
         )
+        response: dict = retry_api_call(upload_file_to_resource, 5, {429, 500})
+
         request_id: str = response.get("data").get("id")
         success_status: str = "succeeded"
         call_url: callable = functools.partial(
@@ -111,8 +116,7 @@ def _process_file_to_upload(
             dict_path="data/attributes/status",
             message=success_status
         )
-        status: str = response.get("data", "").get("attributes", "").get(
-            "status", "")
+        status: str = response.get("data", "").get("attributes", "").get("status")
 
         # either clear the files or leave them and register
         # the ResourceFileRelation for trying to upload them again
