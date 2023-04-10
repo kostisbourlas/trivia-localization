@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Set
 
 from localization.interface import TransifexAPI
 from localization.objects import ResourceFileRelation, Resource
@@ -6,7 +6,7 @@ from localization.utils import (
     create_random_prefix,
     remove_files,
     category_exists_in_resources,
-    append_data_to_file
+    append_data_to_file, get_resource_from_storage
 )
 
 
@@ -52,14 +52,6 @@ def get_created_resources() -> Set[Resource]:
             created_resources.add(resource)
 
     return created_resources
-
-
-def get_resource_from_storage(
-    category: str, storage: Set[Resource]
-) -> Optional[Resource]:
-    for resource in storage:
-        if resource.name == category:
-            return resource
 
 
 def get_or_create_resource(category, resource_storage) -> Resource:

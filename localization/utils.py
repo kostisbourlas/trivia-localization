@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from typing import Tuple, Set
+from typing import Tuple, Set, Optional
 
 from django.conf import settings
 
@@ -32,8 +32,11 @@ def append_data_to_file(data: dict, filename: str) -> Tuple[str, str]:
     return filepath, filename
 
 
-def remove_files(filepath: str) -> True:
-    os.remove(filepath)
+def remove_files(filepath: str) -> bool:
+    try:
+        os.remove(filepath)
+    except FileNotFoundError:
+        return False
     return True
 
 
@@ -44,3 +47,11 @@ def category_exists_in_resources(
         if resource.name == category:
             return True
     return False
+
+
+def get_resource_from_storage(
+    category: str, storage: Set[Resource]
+) -> Optional[Resource]:
+    for resource in storage:
+        if resource.name == category:
+            return resource

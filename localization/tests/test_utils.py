@@ -4,7 +4,7 @@ import json
 from django.test import TestCase
 from django.conf import settings
 
-from localization.utils import append_data_to_file
+from localization.utils import append_data_to_file, remove_files
 
 
 class AppendDataToFileTest(TestCase):
@@ -44,3 +44,23 @@ class AppendDataToFileTest(TestCase):
     def test_append_data_to_nonexistent_path(self):
         with self.assertRaises(FileNotFoundError):
             append_data_to_file({"a": 1}, self.non_existing_file_path)
+
+
+class RemoveFilesTestCase(TestCase):
+    def test_remove_files_existing(self):
+        filepath = "testfile.txt"
+        with open(filepath, "w") as f:
+            f.write("test file")
+
+        # Call the method being tested with an existing file
+        result = remove_files(filepath)
+
+        self.assertTrue(result)
+        self.assertFalse(os.path.exists(filepath))
+
+    def test_remove_files_nonexistent(self):
+        # Call the method being tested with a nonexistent file
+        nonexistent_filepath = "nonexistent.txt"
+        result = remove_files(nonexistent_filepath)
+
+        self.assertFalse(result)
