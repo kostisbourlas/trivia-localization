@@ -1,3 +1,4 @@
+import html
 import json
 import os
 import time
@@ -109,3 +110,15 @@ def construct_trivia_format(trivia: dict) -> dict:
         trivia_format.update({f"{prefix}incorrect_answer_{index}": answer})
 
     return trivia_format
+
+
+def decode_dict_values(dictionary: dict) -> dict:
+    for key, value in dictionary.items():
+        if isinstance(value, str):
+            decoded_value = decode_string(value)
+            dictionary[key] = decoded_value
+    return dictionary
+
+
+def decode_string(string: str) -> str:
+    return html.unescape(string)

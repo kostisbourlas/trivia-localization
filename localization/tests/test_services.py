@@ -162,7 +162,6 @@ class ProcessFileToUploadTestCase(TestCase):
         self.assertEqual(failed_upload, self.item)
 
 
-
 class GetOrCreateResourceTestCase(TestCase):
     def setUp(self):
         self.resource1 = Resource(

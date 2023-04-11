@@ -16,7 +16,9 @@ from localization.utils import (
     category_exists_in_resources,
     get_dict_path,
     call_url_with_polling,
-    call_url_with_retry
+    call_url_with_retry,
+    decode_string,
+    decode_dict_values
 )
 
 
@@ -234,3 +236,26 @@ class TestRetryAPICall(TestCase):
 
         with self.assertRaises(NonPositiveNumberError):
             call_url_with_retry(api_call_mock, 0, {500})
+
+
+class DecodeStringTestCase(TestCase):
+    def test_decode_string(self):
+        encoded_string = "This is a &quot;quoted&quot; string"
+        decoded_string = decode_string(encoded_string)
+        self.assertEqual(decoded_string, 'This is a "quoted" string')
+
+
+class DecodeDictionaryTestCase(TestCase):
+    def test_decode_dict_values(self):
+        input_dict = {
+            'key1': 'This is a &quot;quoted&quot; string',
+            'key2': 'This is an &apos;apostrophized&apos; string',
+            'key3': 1234
+        }
+        expected_dict = {
+            'key1': 'This is a "quoted" string',
+            'key2': "This is an 'apostrophized' string",
+            'key3': 1234
+        }
+        decoded_dict = decode_dict_values(input_dict)
+        self.assertDictEqual(decoded_dict, expected_dict)

@@ -14,7 +14,8 @@ from localization.utils import (
     get_resource_from_storage,
     call_url_with_polling,
     call_url_with_retry,
-    construct_trivia_format
+    construct_trivia_format,
+    decode_dict_values
 )
 
 
@@ -47,8 +48,9 @@ def prepare_trivias_to_upload(categories: Set[str]) -> Set[ResourceFileRelation]
             continue
 
         trivia_data: dict = construct_trivia_format(trivia)
+        decoded_trivia_data: dict = decode_dict_values(trivia_data)
         filepath, filename = append_data_to_file(
-            trivia_data,
+            decoded_trivia_data,
             f"{trivia.get('category')}{settings.TRIVIA_FILES_SUFFIX}.json"
         )
 
