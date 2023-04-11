@@ -92,32 +92,39 @@ def _process_file_to_upload(
         # get existing data from the specified resource
         existing_data: dict = TransifexAPI.get_resource_data(item.resource_id)
     except requests.HTTPError:
+        # Continue overriding the existing resource
         existing_data = {}
 
     # append existing data to the new
     filepath, filename = append_data_to_file(existing_data, item.filename)
 
     with open(filepath, "rb") as file:
-        # upload file to specific resource
-        upload_file_to_resource: Callable = functools.partial(
-            TransifexAPI.upload_file_to_resource, file, filename, item.resource_id
-        )
-        response: dict = call_url_with_retry(upload_file_to_resource, 5, {429, 500})
+        try:
+            upload_file_to_resource: Callable = functools.partial(
+                TransifexAPI.upload_file_to_resource, file, filename, item.resource_id
+            )
+            # upload file to specific resource
+            response: dict = call_url_with_retry(
+                upload_file_to_resource, 5, {429, 500, 503}
+            )
 
-        request_id: str = response.get("data").get("id")
-        success_status: str = "succeeded"
-        get_request_file_upload_data: callable = functools.partial(
-            TransifexAPI.get_request_file_upload_data, request_id=request_id
-        )
-        # poll for response
-        response: dict = call_url_with_polling(
-            call_method=get_request_file_upload_data,
-            retries=5,
-            dict_path="data/attributes/status",
-            message=success_status
-        )
+            request_id: str = response.get("data").get("id")
+            success_status: str = "succeeded"
+            get_request_file_upload_data: callable = functools.partial(
+                TransifexAPI.get_request_file_upload_data, request_id=request_id
+            )
+            # poll for response
+            response: dict = call_url_with_polling(
+                call_method=get_request_file_upload_data,
+                retries=5,
+                dict_path="data/attributes/status",
+                message=success_status
+            )
+        except requests.HTTPError:
+            # register the ResourceFileRelation for trying to upload them again
+            return item
+
         status: str = response.get("data", "").get("attributes", "").get("status")
-
         # either clear the files or leave them and register
         # the ResourceFileRelation for trying to upload them again
         if status == success_status:
@@ -161,7 +168,7 @@ def _get_or_create_resource(
         response = call_url_with_retry(
             call_method=functools.partial(TransifexAPI.create_resource, resource),
             retries=3,
-            error_codes={500}
+            error_codes={429, 500, 503}
         )
         resource_obj = Resource(
             resource_id=response.get("data").get("id"),
