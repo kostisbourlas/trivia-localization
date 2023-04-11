@@ -72,7 +72,7 @@ def process_files_to_upload(
         failed_upload: ResourceFileRelation = _process_file_to_upload(item)
         if failed_upload:
             failed_uploads.add(failed_upload)
-
+        print(f"File {item.filename} processed")
     return failed_uploads
 
 

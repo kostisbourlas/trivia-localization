@@ -2,6 +2,8 @@
 import asyncio
 from typing import List, Set
 
+import aiohttp
+
 from trivia_client.cache import AbstractCache
 from trivia_client.exceptions import EmptyCategoryListError
 from trivia_client.utils import (
@@ -15,7 +17,7 @@ from trivia_client.utils import (
 TRIVIA_API_TRIVIAS_URL: str = "https://opentdb.com/api.php"
 TRIVIA_API_CATEGORIES_URL: str = "https://opentdb.com/api_category.php"
 TRIVIA_CATEGORIES_KEY: str = "trivia_categories"
-TRIVIA_RESULT_SIZE: int = 1
+TRIVIA_RESULT_SIZE: int = 20
 
 
 class TriviaClient:
@@ -31,13 +33,15 @@ class TriviaClient:
         category_ids: Set[int] = get_category_ids_by_names(
             category_list, categories
         )
-
-        responses: list = asyncio.run(
-            call_url_for_each_category_async(
-                base_url=f"{TRIVIA_API_TRIVIAS_URL}?amount={TRIVIA_RESULT_SIZE}",
-                category_ids=category_ids
+        try:
+            responses: list = asyncio.run(
+                call_url_for_each_category_async(
+                    base_url=f"{TRIVIA_API_TRIVIAS_URL}?amount={TRIVIA_RESULT_SIZE}",
+                    category_ids=category_ids
+                )
             )
-        )
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            return []
 
         trivias = get_results_from_responses(responses)
         return trivias
