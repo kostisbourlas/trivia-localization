@@ -1,3 +1,4 @@
+import os
 from unittest import mock
 
 import requests
@@ -7,7 +8,8 @@ from localization.objects import Resource, ResourceFileRelation
 from localization.service import (
     _get_or_create_resource,
     _get_created_resources,
-    prepare_trivias_to_upload
+    _process_file_to_upload,
+    prepare_trivias_to_upload,
 )
 
 
@@ -71,6 +73,7 @@ class PrepareTriviasToUploadTestCase(TestCase):
 
         for relation in expected_result:
             self.assertIn(relation, result)
+            os.remove(relation.filepath)
 
     @mock.patch("localization.service._get_or_create_resource")
     @mock.patch("localization.service.TriviaAPI.get_trivias")
@@ -90,6 +93,74 @@ class PrepareTriviasToUploadTestCase(TestCase):
             ]
         )
         self.assertEqual(len(result), 0)
+
+
+class ProcessFileToUploadTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.item = ResourceFileRelation(
+            resource_id=1,
+            filename='test.json',
+            filepath='uploading_files/test.json',
+        )
+
+    @mock.patch('localization.service.call_url_with_retry')
+    @mock.patch('localization.service.call_url_with_polling')
+    @mock.patch('localization.service.TransifexAPI.get_resource_data')
+    def test_process_file_to_upload_success(
+        self, get_resource_data, mock_polling, mock_retry
+    ):
+        existing_data = {'foo': 'bar'}
+        get_resource_data.return_value = existing_data
+        mock_retry.return_value = {'data': {'id': '123'}}
+        mock_polling.return_value = {
+            'data': {'attributes': {'status': 'succeeded'}}
+        }
+
+        failed_upload = _process_file_to_upload(self.item)
+
+        # Assert that the file was uploaded successfully and the method
+        # returns None
+        self.assertIsNone(failed_upload)
+
+        get_resource_data.assert_called_once_with(
+            self.item.resource_id
+        )
+
+    @mock.patch('localization.service.call_url_with_retry')
+    @mock.patch('localization.service.call_url_with_polling')
+    @mock.patch('localization.service.TransifexAPI.get_resource_data')
+    def test_process_file_to_upload_with_http_error(
+        self, get_resource_data, mock_polling, mock_retry
+    ):
+        existing_data = {'foo': 'bar'}
+        get_resource_data.return_value = existing_data
+        mock_retry.side_effect = requests.HTTPError()
+        mock_polling.return_value = {
+            'data': {'attributes': {'status': 'succeeded'}}
+        }
+
+        failed_upload = _process_file_to_upload(self.item)
+
+        self.assertEqual(failed_upload, self.item)
+
+    @mock.patch('localization.service.call_url_with_retry')
+    @mock.patch('localization.service.call_url_with_polling')
+    @mock.patch('localization.service.TransifexAPI.get_resource_data')
+    def test_process_file_to_upload_fails_in_polling(
+        self, get_resource_data, mock_polling, mock_retry
+    ):
+        existing_data = {'foo': 'bar'}
+        get_resource_data.return_value = existing_data
+        mock_retry.side_effect = requests.HTTPError()
+        mock_polling.return_value = {
+            'data': {'attributes': {'status': 'failed'}}
+        }
+
+        failed_upload = _process_file_to_upload(self.item)
+
+        self.assertEqual(failed_upload, self.item)
+
 
 
 class GetOrCreateResourceTestCase(TestCase):
