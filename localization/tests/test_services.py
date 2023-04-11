@@ -34,11 +34,16 @@ class PrepareTriviasToUploadTestCase(TestCase):
              },
         ]
 
+    @mock.patch("localization.service.TransifexAPI.get_all_resources")
     @mock.patch("localization.service._get_or_create_resource")
     @mock.patch("localization.service.TriviaAPI.get_trivias")
     def test_prepare_trivias_to_upload(
-        self, mock_get_trivias, mock__get_or_create_resource
+        self,
+        mock_get_trivias,
+        mock__get_or_create_resource,
+        mock_get_all_resources
     ):
+        mock_get_all_resources.return_value = {}
         mock_get_trivias.return_value = self.trivia_response
         mock_animals_resource = Resource(
             resource_id=1, name="Animals", slug="animals"
@@ -75,11 +80,16 @@ class PrepareTriviasToUploadTestCase(TestCase):
             self.assertIn(relation, result)
             os.remove(relation.filepath)
 
+    @mock.patch("localization.service.TransifexAPI.get_all_resources")
     @mock.patch("localization.service._get_or_create_resource")
     @mock.patch("localization.service.TriviaAPI.get_trivias")
     def test_prepare_trivias_to_upload_with_http_error(
-        self, mock_get_trivias, mock__get_or_create_resource
+        self,
+        mock_get_trivias,
+        mock__get_or_create_resource,
+        mock_get_all_resources,
     ):
+        mock_get_all_resources.return_value = {}
         mock_get_trivias.return_value = self.trivia_response
         mock__get_or_create_resource.side_effect = requests.HTTPError()
 

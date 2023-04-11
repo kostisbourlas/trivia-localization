@@ -35,7 +35,7 @@ class TransifexClient:
         return response
 
     @staticmethod
-    def upload_file_to_resource(file, filename, resource: str) -> dict:
+    def upload_file_to_resource(file: str, filename: str, resource: str) -> dict:
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
         }
@@ -46,7 +46,7 @@ class TransifexClient:
         )
         return response
 
-    def get_resource_data(self, resource_id) -> dict:
+    def get_resource_data(self, resource_id: str) -> dict:
         request_id: Optional[str] = self._request_resource_download(resource_id)
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
@@ -61,7 +61,7 @@ class TransifexClient:
         return response
 
     @staticmethod
-    def _request_resource_download(resource_id) -> Optional[str]:
+    def _request_resource_download(resource_id: str) -> Optional[str]:
         headers: dict = {
             "Authorization": f"Bearer {settings.TRANSIFEX_SECRET_KEY}",
             "Content-Type": "application/vnd.api+json"

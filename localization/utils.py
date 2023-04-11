@@ -75,6 +75,7 @@ def call_url_with_polling(
         response = call_method()
         if get_dict_path(response, dict_path) == message:
             return response
+        time.sleep(1)
     return {}
 
 

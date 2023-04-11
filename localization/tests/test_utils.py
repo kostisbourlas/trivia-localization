@@ -1,5 +1,7 @@
 import os
 import json
+from unittest import mock
+
 import requests
 
 from unittest.mock import Mock, MagicMock
@@ -147,59 +149,55 @@ class CallUrlWithPollingTestCase(TestCase):
     def setUp(self):
         self.call_url_mock = Mock()
 
-    def test_call_url_with_polling_success(self):
-        # Mock the response to return the expected message
+    @mock.patch("localization.utils.time.sleep")
+    def test_call_url_with_polling_success(self, mock_time_sleep):
+        mock_time_sleep.return_value = None
         self.call_url_mock.side_effect = [
             {"status": "processing"},
             {"status": "processing"},
             {"status": "done", "data": {"result": "success"}},
         ]
 
-        # Define the expected arguments and return value
         retries = 3
         dict_path = "status"
         message = "done"
         expected_result = {"status": "done", "data": {"result": "success"}}
 
-        # Call the method being tested
         result = call_url_with_polling(
             self.call_url_mock, retries, dict_path, message
         )
 
-        # Assert that the mock was called three times
         self.assertEqual(self.call_url_mock.call_count, 3)
 
-        # Assert that the expected result was returned
         self.assertEqual(result, expected_result)
 
-    def test_call_url_with_polling_failure(self):
-        # Mock the response to never return the expected message
+    @mock.patch("localization.utils.time.sleep")
+    def test_call_url_with_polling_failure(self, mock_time_sleep):
+        mock_time_sleep.return_value = None
         self.call_url_mock.side_effect = [
             {"status": "processing"},
             {"status": "processing"},
             {"status": "processing"},
         ]
 
-        # Define the expected arguments and return value
         retries = 3
         dict_path = "status"
         message = "done"
         expected_result = {}
 
-        # Call the method being tested
         result = call_url_with_polling(
             self.call_url_mock, retries, dict_path, message
         )
 
-        # Assert that the mock was called three times
         self.assertEqual(self.call_url_mock.call_count, 3)
 
-        # Assert that no result was returned
         self.assertEqual(result, expected_result)
 
 
 class TestRetryAPICall(TestCase):
-    def test_successful_call(self):
+    @mock.patch("localization.utils.time.sleep")
+    def test_successful_call(self, mock_time_sleep):
+        mock_time_sleep.return_value = None
         response_mock = {"status": "success"}
 
         def api_call_mock():
@@ -208,7 +206,9 @@ class TestRetryAPICall(TestCase):
         result = call_url_with_retry(api_call_mock, 1, set())
         self.assertEqual(result, response_mock)
 
-    def test_retry_on_error_code(self):
+    @mock.patch("localization.utils.time.sleep")
+    def test_retry_on_error_code(self, mock_time_sleep):
+        mock_time_sleep.return_value = None
         error_response_mock = MagicMock()
         error_response_mock.status_code = 409
 
@@ -218,7 +218,9 @@ class TestRetryAPICall(TestCase):
         with self.assertRaises(requests.HTTPError):
             call_url_with_retry(api_call_mock, 1, {409})
 
-    def test_no_retry_on_unhandled_error_code(self):
+    @mock.patch("localization.utils.time.sleep")
+    def test_no_retry_on_unhandled_error_code(self, mock_time_sleep):
+        mock_time_sleep.return_value = None
         error_response_mock = MagicMock()
         error_response_mock.status_code = 404
 
