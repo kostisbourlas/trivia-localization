@@ -1,8 +1,95 @@
 from unittest import mock
+
+import requests
 from django.test import TestCase
 
-from localization.objects import Resource
-from localization.service import _get_or_create_resource, _get_created_resources
+from localization.objects import Resource, ResourceFileRelation
+from localization.service import (
+    _get_or_create_resource,
+    _get_created_resources,
+    prepare_trivias_to_upload
+)
+
+
+class PrepareTriviasToUploadTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.categories = {"Animals", "Science: Gadgets"}
+        cls.trivia_response = [
+            {
+                'category': 'Animals',
+                'question': 'The Axolotl is an amphibian that can spend its '
+                            'whole life in a larval state.',
+                'correct_answer': 'True',
+                'incorrect_answers': 'False'
+            },
+            {
+                'category': 'Science: Gadgets',
+                'question': 'The communication protocol NFC stands for '
+                            'Near-Field Control.',
+                'correct_answer': 'False',
+                'incorrect_answers': 'True'
+             },
+        ]
+
+    @mock.patch("localization.service._get_or_create_resource")
+    @mock.patch("localization.service.TriviaAPI.get_trivias")
+    def test_prepare_trivias_to_upload(
+        self, mock_get_trivias, mock__get_or_create_resource
+    ):
+        mock_get_trivias.return_value = self.trivia_response
+        mock_animals_resource = Resource(
+            resource_id=1, name="Animals", slug="animals"
+        )
+        mock_sports_resource = Resource(
+            resource_id=2, name="Science: Gadgets", slug="science-gadgets"
+        )
+        mock__get_or_create_resource.side_effect = [
+            mock_animals_resource, mock_sports_resource
+        ]
+
+        # Call the method being tested
+        result = prepare_trivias_to_upload(self.categories)
+
+        # Assert that the method returned the expected output
+        expected_result = {
+            ResourceFileRelation(
+                resource_id=1,
+                filepath="uploading_files/Animals_trivia.json",
+                filename="Animals_trivia.json"
+            ),
+            ResourceFileRelation(
+                resource_id=2,
+                filepath="uploading_files/Science: Gadgets_trivia.json",
+                filename="Science: Gadgets_trivia.json"
+            ),
+        }
+
+        self.assertEqual(result, expected_result)
+
+        mock_get_trivias.assert_called_once_with(self.categories)
+
+        for relation in expected_result:
+            self.assertIn(relation, result)
+
+    @mock.patch("localization.service._get_or_create_resource")
+    @mock.patch("localization.service.TriviaAPI.get_trivias")
+    def test_prepare_trivias_to_upload_with_http_error(
+        self, mock_get_trivias, mock__get_or_create_resource
+    ):
+        mock_get_trivias.return_value = self.trivia_response
+        mock__get_or_create_resource.side_effect = requests.HTTPError()
+
+        result: set = prepare_trivias_to_upload(self.categories)
+
+        mock_get_trivias.assert_called_once_with(self.categories)
+        mock__get_or_create_resource.assert_has_calls(
+            [
+                mock.call("Animals", _get_created_resources()),
+                mock.call("Science: Gadgets", _get_created_resources())
+            ]
+        )
+        self.assertEqual(len(result), 0)
 
 
 class GetOrCreateResourceTestCase(TestCase):
