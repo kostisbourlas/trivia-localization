@@ -108,11 +108,11 @@ def _process_file_to_upload(
                 upload_file_to_resource, 5, {429, 500, 503}
             )
 
-            request_id: str = response.get("data").get("id")
-            success_status: str = "succeeded"
             get_request_file_upload_data: callable = functools.partial(
-                TransifexAPI.get_request_file_upload_data, request_id=request_id
+                TransifexAPI.get_request_file_upload_data,
+                request_id=response.get("data").get("id")
             )
+            success_status: str = "succeeded"
             # poll for response
             response: dict = call_url_with_polling(
                 call_method=get_request_file_upload_data,
@@ -124,14 +124,14 @@ def _process_file_to_upload(
             # register the ResourceFileRelation for trying to upload them again
             return item
 
+        # if status is not "suceeded", consider the file upload failed
         status: str = response.get("data", "").get("attributes", "").get("status")
-        # either clear the files or leave them and register
-        # the ResourceFileRelation for trying to upload them again
-        if status == success_status:
-            _ = remove_files(item.filepath)
-            return None
+        if status != success_status:
+            return item
 
-    return item
+    # Everything went well, remove the uploaded files
+    _ = remove_files(item.filepath)
+    return None
 
 
 def _get_created_resources() -> Set[Resource]:
