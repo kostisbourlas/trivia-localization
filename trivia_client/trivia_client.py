@@ -1,23 +1,23 @@
 # The file maps all the relevant Trivia APIs.
 import asyncio
-from typing import List, Set
-
 import aiohttp
+
+from typing import List, Set
 
 from trivia_client.cache import AbstractCache
 from trivia_client.exceptions import EmptyCategoryListError
+from trivia_client.settings import (
+    TRIVIA_API_TRIVIAS_URL,
+    TRIVIA_API_CATEGORIES_URL,
+    TRIVIA_CATEGORIES_KEY,
+    TRIVIA_RESULT_SIZE
+)
 from trivia_client.utils import (
     get_category_ids_by_names,
     call_url_for_each_category_async,
     get_results_from_responses,
     call_url_get
 )
-
-
-TRIVIA_API_TRIVIAS_URL: str = "https://opentdb.com/api.php"
-TRIVIA_API_CATEGORIES_URL: str = "https://opentdb.com/api_category.php"
-TRIVIA_CATEGORIES_KEY: str = "trivia_categories"
-TRIVIA_RESULT_SIZE: int = 20
 
 
 class TriviaClient:
