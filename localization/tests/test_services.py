@@ -143,6 +143,7 @@ class ProcessFileToUploadTestCase(TestCase):
         failed_upload = _process_file_to_upload(self.item)
 
         self.assertEqual(failed_upload, self.item)
+        os.remove(failed_upload.filepath)
 
     @mock.patch('localization.service.call_url_with_retry')
     @mock.patch('localization.service.call_url_with_polling')
@@ -160,6 +161,7 @@ class ProcessFileToUploadTestCase(TestCase):
         failed_upload = _process_file_to_upload(self.item)
 
         self.assertEqual(failed_upload, self.item)
+        os.remove(failed_upload.filepath)
 
 
 class GetOrCreateResourceTestCase(TestCase):
