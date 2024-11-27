@@ -1,4 +1,5 @@
-# transifex_assignment
+# Trivia Localization
+This can be used as an example of creating a modular app that takes data from a 3rd party API and send them to another 3rd party API.
 
 <b>Setup:</b> <br>
 `python3 -m venv venv` <br>
